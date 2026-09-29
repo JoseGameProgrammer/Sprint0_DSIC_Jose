@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.widget.LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/estado"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Servicio parado."
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <Button
+        android:id="@+id/botonArrancarServicio"
+        android:text="Arrancar Servicio"
+        android:onClick="botonArrancarServicioPulsado"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:id="@+id/botonDetenerServicio"
+        android:text="Detener Servicio"
+        android:onClick="botonDetenerServicioPulsado"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/ultimaMedicion"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="(aún no se ha recibido ninguna medida)"
+        android:textSize="14sp" />
+
+</android.widget.LinearLayout>
