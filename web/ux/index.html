@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<!--
+===================================================================================================
+ DISEÑO LÓGICO: interfaz gráfica del navegador - web/ux/index.html
+---------------------------------------------------------------------------------------------------
+
+ TIPO DE DATO QUE SE PINTA EN LAS TABLAS (en nuestra notación oficial):
+
+     Medida = ( id: N,
+                uuid: Text,
+                major: N,
+                minor: Z,
+                txPower: Z,
+                nombreEmisora: Text,
+                fechaLectura: Text )
+
+ De los 7 campos de Medida se pintean estos en las tablas:
+     - id            -> columna "ID"            (tipo N, sin signo)
+     - uuid          -> columna "Uuid"          (tipo Text)
+     - major         -> columna "Medición"      (tipo N, junto con minor, ver nota de abajo)
+     - minor         -> columna "Medición"      (tipo Z, con signo)
+     - nombreEmisora -> columna "Nombre Emisora"(tipo Text)
+     - fechaLectura  -> columna "Fecha y Hora"  (tipo Text, formato "AAAA-MM-DD HH:MM:SS")
+
+ txPower NO sale en pantalla: es el valor en dBm de la señal, y el diseño de la
+ interfaz no tiene columna para él. Sigue llegando en el JSON, y el backend lo
+ guarda igual, pero de momento no se enseña. Si algún día se quiere enseñar, es
+ añadir una columna más a las dos tablas.
+
+ NOTA SOBRE LA COLUMNA "MEDICIÓN"
+ --------------------------------
+ El enunciado llama a esta columna "Medición" y en el dibujo pone un número
+ suelto (1234). Aquí se pinta el par major.minor, que es lo que identifica de
+ verdad una medida iBeacon: por ejemplo 2817.235. Se ha así porque muestra los
+ dos campos de una vez, y porque un solo major no distingue dos beacons
+ distintos que compartan uuid.
+ Si en la revisión del diseño se prefiere el major a secas, es cambiar una línea:
+ en la fila, donde pone "major . minor" en el <td>, dejar solo "major".
+
+ CÓMO SE LLENAN LAS TABLAS
+ -------------------------
+ Las dos tablas vienen con unas filas de ejemplo para poder revisar el diseño
+ sin necesidad del servidor. Esas filas están FIJAS en el HTML.
+
+ Cuando exista web/ux/LogicaFake.js (lógica del navegador, prompt 5), su trabajo
+ será VACIAR esos dos <tbody> y meter las medidas que llegue del servidor, para
+ que no se queden las de ejemplo mezcladas con las de verdad. Los <tbody> tienen
+ justo los id que necesita para eso:
+     #tbody-ultima-medida      -> la medida más reciente
+     #tbody-medidas-anteriores -> el historial
+
+ En este prompt (6) NO se ha escrito todavía LogicaFake.js, así que al abrir la
+ página el navegador se quejará en la consola de que no lo encuentra. Es lo
+ esperado y no es un fallo de esta página.
+===================================================================================================
+-->
+<html lang="es">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SPRINT 0 - WEB con conexión a nuestra base de datos con medidas</title>
+
+  <style>
+    /* ---------------------------------------------------------------------------------------------
+       COLORES DEL DISEÑO
+       ---------------------------------------------------------------------------------------------
+       Son los mismos valores que están escritos en el enunciado y en el dibujo, para que se
+       puedan cambiar todos en un solo sitio si el profesor pide otro color:
+
+         --color-barra      morado / azul claro de la barra de título
+         --verde-oscuro     verde intenso de la cabecera de la tabla de la última medida
+         --verde-claro      verde claro de la cabecera de la tabla de medidas anteriores
+         --gris-fila        gris suave de las filas alternas del historial
+         --gris-borde       gris de las líneas de la rejilla de las tablas
+       --------------------------------------------------------------------------------------------- */
+    :root {
+      --color-barra:   #9999ff;
+      --verde-oscuro:  #00a000;
+      --verde-claro:   #90ee90;
+      --gris-fila:     #f2f2f2;
+      --gris-borde:    #999999;
+      --color-texto:   #1a1a1a;
+      --ancho-maximo:  900px;
+    }
+
+    /* -------------------------------------------------------------------------------------------
+       ESTILO GENERAL DE LA PÁGINA
+       -------------------------------------------------------------------------------------------
+       body   fondo gris muy claro y texto centrado, como el dibujo.
+       .tabla   con margin: 0 auto se CENTRA en horizontal, que es lo que pide el diseño.
+       ------------------------------------------------------------------------------------------- */
+    body {
+      margin: 0;
+      padding: 0 0 40px 0;
+      background-color: #fafafa;
+      color: var(--color-texto);
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* -------------------------------------------------------------------------------------------
+       1) BARRA DE TÍTULO
+       -------------------------------------------------------------------------------------------
+       Ocupa TODO el ancho de la pantalla, con fondo morado/azul claro, y el título va centrado.
+       ------------------------------------------------------------------------------------------- */
+    .barra-titulo {
+      background-color: var(--color-barra);
+      padding: 18px 10px;
+      text-align: center;
+    }
+
+    .barra-titulo h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+      color: #14142e;
+    }
+
+    /* -------------------------------------------------------------------------------------------
+       BLOQUES CENTRALES
+       -------------------------------------------------------------------------------------------
+       Cada bloque (última medida / medidas anteriores) es una caja blanca centrada, con el título
+       arriba y la tabla debajo. El margin-bottom separa los dos bloques.
+       ------------------------------------------------------------------------------------------- */
+    .bloque {
+      max-width: var(--ancho-maximo);
+      margin: 28px auto 0 auto;
+      padding: 18px 20px 22px 20px;
+      background-color: #ffffff;
+      border: 1px solid #dddddd;
+      border-radius: 4px;
+    }
+
+    .bloque h2 {
+      margin: 0 0 12px 0;
+      font-size: 17px;
+      font-weight: 600;
+      text-align: center;
+      color: #222222;
+    }
+
+    /* -------------------------------------------------------------------------------------------
+       2) ESTILO COMÚN DE LAS DOS TABLAS
+       -------------------------------------------------------------------------------------------
+       La rejilla (las líneas entre celdas) se dibuja con "border-collapse", igual que los +---+
+       del dibujo. Las celdas van centradas y con algo de aire.
+       ------------------------------------------------------------------------------------------- */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    th, td {
+      border: 1px solid var(--gris-borde);
+      padding: 7px 10px;
+    }
+
+    /* -------------------------------------------------------------------------------------------
+       CABECERAS DE LAS TABLAS
+       -------------------------------------------------------------------------------------------
+       La de la última medida es verde INTENSO con letra blanca, y la del historial es verde CLARO
+       con letra oscura: los dos verdes distintos que pide el diseño.
+       ------------------------------------------------------------------------------------------- */
+    .tabla-ultima-medida thead th {
+      background-color: var(--verde-oscuro);
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    .tabla-medidas-anteriores thead th {
+      background-color: var(--verde-claro);
+      color: #143d14;
+      font-weight: 700;
+    }
+
+    /* -------------------------------------------------------------------------------------------
+       FILAS ALTERNAS DEL HISTORIAL
+       -------------------------------------------------------------------------------------------
+       Una fila blanca y la siguiente gris suave, una y otra, hasta el final de la tabla.
+       Se hace con "tr:nth-child(even)", que cuenta las filas y tiñe las pares.
+       ------------------------------------------------------------------------------------------- */
+    .tabla-medidas-anteriores tbody tr:nth-child(even) {
+      background-color: var(--gris-fila);
+    }
+
+    /* Si no hay ninguna medida, se avisa en vez de dejar la tabla vacía sin explicación. */
+    .sin-medidas {
+      padding: 12px;
+      color: #777777;
+      font-style: italic;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ===============================================================================================
+       1) BARRA DE TÍTULO
+       A ancho completo, fondo morado/azul claro y el título centrado.
+       =============================================================================================== -->
+  <header class="barra-titulo">
+    <h1>SPRINT 0 - WEB con conexión a nuestra base de datos con medidas</h1>
+  </header>
+
+  <!-- ===============================================================================================
+       2) TABLA DE LA ÚLTIMA MEDIDA REGISTRADA
+       Solo la fila más reciente. La cabecera de columnas va en verde intenso.
+       Su <tbody> tiene id="tbody-ultima-medida", que es el que necesita la lógica del navegador.
+       =============================================================================================== -->
+  <section class="bloque">
+    <h2>Última medida registrada</h2>
+
+    <table class="tabla-ultima-medida">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Medición</th>
+          <th>Uuid</th>
+          <th>Nombre Emisora</th>
+          <th>Fecha y Hora</th>
+        </tr>
+      </thead>
+
+      <!-- Fila de ejemplo, fija, para poder revisar el diseño sin servidor. -->
+      <tbody id="tbody-ultima-medida">
+        <tr>
+          <td>5</td>
+          <td>2817.235</td>
+          <td>EPSG-GTI-PROY-3A</td>
+          <td>GTI-Jose</td>
+          <td>2026-09-28 20:45:08</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ===============================================================================================
+       3) TABLA DE MEDIDAS ANTERIORES
+       El historial, de la más reciente a la más antigua, con filas alternas blanco/gris.
+       Su <tbody> tiene id="tbody-medidas-anteriores".
+       =============================================================================================== -->
+  <section class="bloque">
+    <h2>Medidas anteriores</h2>
+
+    <table class="tabla-medidas-anteriores">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Medición</th>
+          <th>Uuid</th>
+          <th>Nombre Emisora</th>
+          <th>Fecha y Hora</th>
+        </tr>
+      </thead>
+
+      <!-- Filas de ejemplo, fijas, para poder revisar el diseño sin servidor. -->
+      <tbody id="tbody-medidas-anteriores">
+        <tr>
+          <td>4</td>
+          <td>2817.234</td>
+          <td>EPSG-GTI-PROY-3A</td>
+          <td>GTI-Jose</td>
+          <td>2026-09-28 20:45:08</td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td>2817.233</td>
+          <td>EPSG-GTI-PROY-3A</td>
+          <td>GTI-Jose</td>
+          <td>2026-09-28 19:45:08</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td>2817.232</td>
+          <td>EPSG-GTI-PROY-3A</td>
+          <td>GTI-Jose</td>
+          <td>2026-09-28 18:45:08</td>
+        </tr>
+        <tr>
+          <td>1</td>
+          <td>2817.231</td>
+          <td>EPSG-GTI-PROY-3A</td>
+          <td>GTI-Jose</td>
+          <td>2026-09-28 17:45:08</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ===============================================================================================
+       LÓGICA DEL NAVEGADOR
+       Al final del body, como pide el enunciado.
+       LogicaFake.js todavía NO existe (es el prompt 5), así que el navegador anotará un 404 en
+       la consola al abrir la página. Es lo esperado en este prompt.
+       =============================================================================================== -->
+  <script src="LogicaFake.js"></script>
+
+  <!-- ===============================================================================================
+       TEST AUTOMÁTICO DE LA INTERFAZ
+       definida verificarUX() comprobando, con "if", que están los dos <tbody> y que las dos
+       tablas tienen sus 5 cabeceras. Se ejecuta solo al abrir la página, y también se puede
+       llamar a mano desde la consola escribiendo:  verificarUX()
+       =============================================================================================== -->
+  <script src="testUX.js"></script>
+
+</body>
+
+</html>
