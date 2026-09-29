@@ -37,7 +37,7 @@ private:
 public:
   // La emisora BLE que posee el publicador
   EmisoraBLE laEmisora {
-	"GTI-3A", //  nombre emisora
+	"GTI-3A-Jose", //  nombre emisora
 	  0x004c, // fabricanteID (Apple)
 	  4 // txPower
 	  };

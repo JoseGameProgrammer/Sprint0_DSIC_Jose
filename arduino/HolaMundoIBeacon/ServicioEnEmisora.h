@@ -109,15 +109,15 @@ public:
 	} // ()
 
 	// .........................................................
-	// DISEÑO: nombre: Text, props: N, permisoRead: BleSecurityMode,
-	//         permisoWrite: BleSecurityMode, tam: N --> Caracteristica() -->
+	// DISEÑO: nombre: Text, props: N, permisoRead: SecureMode_t,
+	//         permisoWrite: SecureMode_t, tam: N --> Caracteristica() -->
 	// Qué hace: construye la característica y le da propiedades,
 	//           permisos de lectura/escritura y tamaño de datos.
 	// .........................................................
 	Caracteristica( const char * nombreCaracteristica_ ,
 					uint8_t props,
-					BleSecurityMode permisoRead,
-					BleSecurityMode permisoWrite, 
+					SecureMode_t permisoRead,
+					SecureMode_t permisoWrite, 
 					uint8_t tam ) 
 	  :
 	  Caracteristica( nombreCaracteristica_ ) // llamada al otro constructor
@@ -137,12 +137,12 @@ public:
 	} // ()
 
 	// .........................................................
-	// DISEÑO: permisoRead: BleSecurityMode, permisoWrite: BleSecurityMode
+	// DISEÑO: permisoRead: SecureMode_t, permisoWrite: SecureMode_t
 	//                              --> asignarPermisos() -->
 	// Qué hace: fija los permisos de seguridad de acceso a la
 	//           característica (SECMODE_OPEN, SECMODE_NO_ACCESS...).
 	// .........................................................
-	void asignarPermisos( BleSecurityMode permisoRead, BleSecurityMode permisoWrite ) {
+	void asignarPermisos( SecureMode_t permisoRead, SecureMode_t permisoWrite ) {
 	  // no puedo escribir AUN si el constructor llama a esto: Serial.println( "laCaracteristica.setPermission( permisoRead, permisoWrite ); " );
 	  (*this).laCaracteristica.setPermission( permisoRead, permisoWrite );
 	} // ()
@@ -165,8 +165,8 @@ public:
 	// Qué hace: configura de una vez propiedades + permisos + tamaño.
 	// .........................................................
 	void asignarPropiedadesPermisosYTamanyoDatos( uint8_t props,
-												 BleSecurityMode permisoRead,
-												 BleSecurityMode permisoWrite, 
+												 SecureMode_t permisoRead,
+												 SecureMode_t permisoWrite, 
 												 uint8_t tam ) {
 	  asignarPropiedades( props );
 	  asignarPermisos( permisoRead, permisoWrite );
@@ -223,7 +223,7 @@ public:
 	  Globales::elPuerto.escribir(  error );
 	} // ()
 
-  } // class Caracteristica
+  }; // class Caracteristica
   
   // --------------------------------------------------------
   // --------------------------------------------------------

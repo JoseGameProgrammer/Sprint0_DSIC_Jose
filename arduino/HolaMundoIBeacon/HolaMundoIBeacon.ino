@@ -79,7 +79,7 @@ void inicializarPlaquita () {
 // --------------------------------------------------------------
 void setup() {
 
-  Globales::elPuerto.esperarDisponible();
+  //Globales::elPuerto.esperarDisponible(); // Lo comento para que funcione sin abrir el serial
 
   // 
   // 
@@ -136,14 +136,6 @@ namespace Loop {
 };
 
 // ..............................................................
-// Contador global de muestras emitidas (se usa en el campo "major"
-// del anuncio iBeacon para numerar la muestra).
-// ..............................................................
-namespace Loop {
-  uint8_t cont = 0;
-};
-
-// ..............................................................
 // DISEÑO: --> loop() -->
 // Qué hace: bucle principal infinito. Incrementa el contador,
 //           hace la señal de vida (LED), mide CO2 y temperatura y
@@ -191,16 +183,7 @@ void loop () {
   // 
   // Al terminar la prueba hay que hacer Publicador::laEmisora privado
   // 
-  char datos[21] = {
-	'H', 'o', 'l', 'a',
-	'H', 'o', 'l', 'a',
-	'H', 'o', 'l', 'a',
-	'H', 'o', 'l', 'a',
-	'H', 'o', 'l', 'a',
-	'H'
-  };
-
-  // elPublicador.laEmisora.emitirAnuncioIBeaconLibre ( &datos[0], 21 );
+  // elPublicador.laEmisora.emitirAnuncioIBeaconLibre ( "MolaMolaMolaMolaMolaM", 21 );
   elPublicador.laEmisora.emitirAnuncioIBeaconLibre ( "MolaMolaMolaMolaMolaM", 21 );
 
   esperar( 2000 );
