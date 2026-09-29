@@ -37,7 +37,7 @@
         </activity>
 
         <service
-            android:name=".ServicioEscuharBeacons"
+            android:name=".ServicioEscucharBeacons"
             android:exported="false" />
 
     </application>

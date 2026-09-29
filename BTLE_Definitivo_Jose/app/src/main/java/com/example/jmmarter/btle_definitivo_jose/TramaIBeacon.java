@@ -1,4 +1,4 @@
-package org.jordi.prueba2025;
+package com.example.jmmarter.btle_definitivo_jose;
 
 import java.util.Arrays;
 

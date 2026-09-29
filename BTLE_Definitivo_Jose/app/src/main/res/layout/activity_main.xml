@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Antes este layout sólo tenía los dos botones del servicio (MainActivityServicio) y las
+    otras dos Activities no podían ni inflarlo. Ahora es el layout ÚNICO de MainActivity y
+    tiene un botón por cada manejador android:onClick.
+-->
 <android.widget.LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     xmlns:tools="http://schemas.android.com/tools"
@@ -15,18 +20,75 @@
         android:textSize="16sp"
         android:textStyle="bold" />
 
+    <!-- ================= ESCANEO BTLE ================= -->
+
+    <Button
+        android:id="@+id/botonBuscarDispositivos"
+        android:text="Buscar TODOS los dispositivos BTLE"
+        android:onClick="botonBuscarDispositivosBTLEPulsado"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:id="@+id/botonBuscarNuestroDispositivo"
+        android:text="Buscar NUESTRO dispositivo (GTI-3A-Jose)"
+        android:onClick="botonBuscarNuestroDispositivoBTLEPulsado"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:id="@+id/botonDetenerBusquedaDispositivos"
+        android:text="Detener búsqueda BTLE"
+        android:onClick="botonDetenerBusquedaDispositivosBTLEPulsado"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <!-- ================= SERVICIO ================= -->
+
     <Button
         android:id="@+id/botonArrancarServicio"
         android:text="Arrancar Servicio"
         android:onClick="botonArrancarServicioPulsado"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
     <Button
         android:id="@+id/botonDetenerServicio"
         android:text="Detener Servicio"
         android:onClick="botonDetenerServicioPulsado"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <!-- ================= MEDIDA AL SERVIDOR REST ================= -->
+
+    <Button
+        android:id="@+id/botonTestEnviarMedida"
+        android:text="TEST AUTOMÁTICO: enviar medida al servidor"
+        android:onClick="botonTestEnviarMedidaPulsado"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <!-- ================= PRUEBAS DEL CLIENTE REST ================= -->
+
+    <Button
+        android:id="@+id/botonPruebaPOST"
+        android:text="Prueba REST: POST a httpbin.org"
+        android:onClick="botonPruebaPOSTPulsado"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:id="@+id/botonPruebaGET"
+        android:text="Prueba REST: GET a jsonplaceholder"
+        android:onClick="botonPruebaGETPulsado"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:id="@+id/botonPruebaGET2"
+        android:text="Prueba REST: GET a reqbin"
+        android:onClick="botonPruebaGET2Pulsado"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
     <TextView

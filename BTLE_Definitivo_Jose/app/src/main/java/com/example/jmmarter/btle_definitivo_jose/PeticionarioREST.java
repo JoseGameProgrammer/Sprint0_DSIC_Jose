@@ -1,4 +1,4 @@
-package org.jordi.pruebarest1;
+package com.example.jmmarter.btle_definitivo_jose;
 
 import java.io.BufferedReader;
 import java.io.IOException;
