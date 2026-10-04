@@ -184,7 +184,32 @@ void loop () {
   // Al terminar la prueba hay que hacer Publicador::laEmisora privado
   // 
   // elPublicador.laEmisora.emitirAnuncioIBeaconLibre ( "MolaMolaMolaMolaMolaM", 21 );
-  elPublicador.laEmisora.emitirAnuncioIBeaconLibre ( "MolaMolaMolaMolaMolaM", 21 );
+  //
+  // ESTA LINEA ESTA COMENTADA A PROPOSITO (2026-10-03). No la activates sin
+  // saber lo que hace, porque ARRUINA la lectura de las medidas.
+  //
+  // Que hacia: emitia un iBeacon de formato LIBRE, es decir, sin pasar por
+  // emitirAnuncioIBeacon(). En vez de poner el uuid, major, minor y txPower
+  // de verdad, metia a pelo las 21 letras del texto "MolaMolaMolaMolaMolaM"
+  // en la zona de datos. Y como el movil SIEMPRE interpreta esos 21 bytes
+  // como (16 del uuid) + (2 de major) + (2 de minor) + (1 de txPower), leia:
+  //
+  //     uuid   = "MolaMolaMolaMola"
+  //     major  = "Mo" = 0x4D6F = 19823
+  //     minor  = "la" = 0x6C61 = 27745
+  //     txPower= "M"  = 0x4D   = 77
+  //
+  // O sea: no es que el sensor dijera 19823 y 27745, es que el movil se
+  // comia las letras. Ademas emitia durante 2 segundos, mientras que el CO2
+  // y la temperatura emiten 1 segundo cada uno, asi que 2 de cada ~5
+  // segundos de aire eran esta basura y se colaba mas que las medidas de verdad.
+  //
+  // Se ha comentado porque el enunciado pide ver minor=235 (CO2) y minor=-12
+  // (temperatura), y con este anuncio de prueba estorbaba. El metodo sigue
+  //iendo valido para lo que fue: ver que los bytes libres se pueden leer de
+  //la forma que uno quiera.
+  //
+  // elPublicador.laEmisora.emitirAnuncioIBeaconLibre ( "MolaMolaMolaMolaMolaM", 21 );
 
   esperar( 2000 );
 

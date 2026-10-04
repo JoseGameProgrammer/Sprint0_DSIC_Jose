@@ -4,13 +4,20 @@
     otras dos Activities no podían ni inflarlo. Ahora es el layout ÚNICO de MainActivity y
     tiene un botón por cada manejador android:onClick.
 -->
-<android.widget.LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<!-- Sin ScrollView los 9 botones no caben en pantalla y los ultimos son
+     imposibles de pulsar. El ScrollView permite llegar a todos. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
-    tools:context=".MainActivity">
+    android:fillViewport="true">
+
+    <android.widget.LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        tools:context=".MainActivity">
 
     <TextView
         android:id="@+id/estado"
@@ -98,4 +105,5 @@
         android:text="(aún no se ha recibido ninguna medida)"
         android:textSize="14sp" />
 
-</android.widget.LinearLayout>
+    </android.widget.LinearLayout>
+</ScrollView>

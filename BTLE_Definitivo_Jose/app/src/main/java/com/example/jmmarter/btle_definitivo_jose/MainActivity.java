@@ -7,12 +7,13 @@ import androidx.core.content.ContextCompat;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
-import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanRecord;
 import android.content.pm.PackageManager;
@@ -20,8 +21,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 // ==================================================================================================
 // DISEÑO LÓGICO: MainActivity (detector BTLE + servicio + pruebas REST)
@@ -33,6 +35,7 @@ import java.util.List;
 //       buscarTodosLosDispositivosBTLE() -->
 //
 //   botonBuscarNuestroDispositivoBTLEPulsado(v) -->
+//       arrancarElServicio() --> startService() -->
 //       buscarEsteDispositivoBTLE(nombre) -->
 //
 //   botonDetenerBusquedaDispositivosBTLEPulsado(v) -->
@@ -41,8 +44,10 @@ import java.util.List;
 //   callbackDelEscaneo.onScanResult() -->
 //       mostrarInformacionDispositivoBTLE(resultado) -->
 //           --> TramaIBeacon() + Utilidades.xxx()
+//           --> enviarLaMedidaAlServidor() -->
+//                   --> ServicioEscucharBeacons.enviarMedidaAlServidor() -->
 //
-//   botonArrancarServicioPulsado(v) --> startService() -->
+//   botonArrancarServicioPulsado(v) --> arrancarElServicio() --> startService() -->
 //   botonDetenerServicioPulsado(v)  --> stopService() -->
 //   botonTestEnviarMedidaPulsado(v)  --> probarEnviarMedidaAlServidor() -->
 //   botonPruebaPOSTPulsado(v)        --> probarEnviarPOST() -->
@@ -91,6 +96,71 @@ public class MainActivity extends AppCompatActivity {
     // Intent con el que se arrancó el servicio (null si el servicio está parado).
     // ---------------------------------------------------------------------------------------------
     private Intent elIntentDelServicio = null;
+
+    // ---------------------------------------------------------------------------------------------
+    // INDICADOR DE MODO: ¿el escaneo activo manda las medidas al servidor?
+    //
+    //   true   -> el escaneo es el de "Buscar NUESTRO dispositivo". Cada iBeacon que llega se
+    //             manda solo a GuardarMedida.php, sin tocar nada más.
+    //   false  -> el escaneo es el de "Buscar TODOS los dispositivos". Ese botón es solo para
+    //             MIRE qué hay alrededor (diagnóstico), así que no manda nada a ningún sitio.
+    //
+    // Por qué hace falta el interruptor y no meter el envío directamente en el callback: los
+    // dos botones usan EXACTAMENTE el mismo callback de escaneo. Si el envío estuviera en el
+    // callback sin mirar este indicador, el botón "buscar todos" también mandaría medidas de
+    // cualquiera de los beacons que hubiera alrededor, que no es lo que se quiere.
+    // ---------------------------------------------------------------------------------------------
+    private boolean enviarAlServidorCadaMedida = false;
+
+    // ---------------------------------------------------------------------------------------------
+    // Instancia del servicio usada SOLO para poder llamar a enviarMedidaAlServidor().
+    //
+    // OJO: esto NO arranca el servicio de verdad. El servicio de verdad lo arranca el Intent que
+    // guarda el botón. Aquí lo único que se hace es tener un objeto con el que llamar al
+    // método, que es justo lo que ya hace el test automático (ver
+    // ServicioEscucharBeacons.probarEnviarMedidaAlServidor).
+    //
+    // Está a null hasta que hace falta, y se reutiliza para no crear uno por cada medida.
+    // ---------------------------------------------------------------------------------------------
+    private ServicioEscucharBeacons servicioParaEnviarAlServidor = null;
+
+    // ---------------------------------------------------------------------------------------------
+    // POR QUE EL FILTRO POR NOMBRE SE HACE EN CODIGO Y NO CON ScanFilter
+    //
+    // Antes se armaba un ScanFilter con setDeviceName("GTI-3A-Jose") y se lo pasaba a startScan().
+    // Eso fue lo que hizo que el movil NO recibiera NADA:
+    //
+    //   19:26:16.119  BluetoothLeScanner onScannerRegistered() - status=0 scannerId=6
+    //   19:26:30.857  boton detener busqueda dispositivos BTLE Pulsado
+    //
+    // El escaner arranca bien (status=0) pero en 14 segundos no entra ni un solo onScanResult().
+    // Ni del beacon ni de ningun otro dispositivo: el filtro no casa con nada y se come todo.
+    //
+    // El problema del filtro por nombre es que Android solo puede compararlo con el nombre que
+    // venga en el ANUNCIO o en la RESPUESTA DE ESCANEO. Si la placa manda el nombre en otro sitio,
+    // o lo manda con otro formato, el filtro descarta TODOS los resultados aunque la placa este
+    // emitiendo a dos metros. Es un fallo fragil y muy conocido.
+    //
+    // Solucion: escanear SIN filtros (llega todo, que es lo que queremos) y comparar el nombre
+    // aqui dentro, en mostrarInformacionDispositivoBTLE(), que es donde ya se pedia el nombre.
+    // Se sigue viendo solo el beacon propio, pero ahora el escaneo no depende del filtro.
+    // ---------------------------------------------------------------------------------------------
+    private String nombreDelDispositivoQueBuscamos = null;
+
+    // Direcciones de los dispositivos AJENOS que ya se han anotado en el Log. Como ahora llega
+    // todo el que hay alrededor, sin esto el Logcat se llena de miles de lineas y no se ve nada.
+    // Solo se avisa la PRIMERA vez que aparece cada uno.
+    private final Set<String> dispositivosAjenosYaAvisados = new HashSet<String>();
+
+    // ---------------------------------------------------------------------------------------------
+    // VIGILANTE DEL ESCANEO: como el escaneo se puede morir en silencio (a veces el Bluetooth del
+    // telefono se queda sin escanear sin avisar y sin llamar a onScanFailed()), se comprueba cada
+    // pocos segundos si ha entrado algo. Si lleva demasiado tiempo sin recibir nada, se reinicia.
+    // Esto es lo que hace que el escaneo "siga" de verdad en vez de quedarse muerto.
+    // ---------------------------------------------------------------------------------------------
+    private Handler elHandlerDelVigilante = new Handler(Looper.getMainLooper());
+    private long ultimoAnuncioRecibido = 0L;
+    private static final long SEGUNDOS_SIN_RESPUESTA_ANTES_DE_REINICIAR = 6L;
 
     // ---------------------------------------------------------------------------------------------
     // Vistas de la interfaz.
@@ -182,8 +252,6 @@ public class MainActivity extends AppCompatActivity {
     // ---------------------------------------------------------------------------------------------
     private void mostrarInformacionDispositivoBTLE(ScanResult resultado) {
 
-        Log.d(ETIQUETA_LOG, " mostrarInformacionDispositivoBTLLE(): empieza ");
-
         BluetoothDevice bluetoothDevice = resultado.getDevice();
 
         // BUG CORREGIDO: getScanRecord() puede devolver null (hay anuncios sin
@@ -197,6 +265,39 @@ public class MainActivity extends AppCompatActivity {
         byte[] bytes = elRecord.getBytes();
         int rssi = resultado.getRssi();
 
+        // -----------------------------------------------------------------------------------------
+        // ESTE ES EL ARREGLO DE LO QUE NO FUNCIONABA.
+        //
+        // El nombre se compara AQUI, con el getName() de verdad, en vez de dejar que lo haga un
+        // ScanFilter por nombre. Asi el escaneo entrega todo lo que hay alrededor y luego se
+        // descarta lo que no sea el beacon nuestro.
+        //
+        // Va aqui arriba, antes del volcado de logs, porque sin esto el Logcat se llenaba de
+        // EarPods, relojes y coches que hay en la habitacion y no se veia ni el beacon propio.
+        // -----------------------------------------------------------------------------------------
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT)
+                != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+
+        String nombreDeEsteDispositivo = bluetoothDevice.getName();
+
+        if (this.nombreDelDispositivoQueBuscamos != null
+                && !this.nombreDelDispositivoQueBuscamos.equals(nombreDeEsteDispositivo)) {
+
+            // No es el nuestro. Solo se avisa la primera vez que aparece cada uno, o el Log
+            // se llenaria de miles de lineas repetidas.
+            if (this.dispositivosAjenosYaAvisados.add(bluetoothDevice.getAddress())) {
+                Log.d(ETIQUETA_LOG, "  escaneo VIVO, otro dispositivo que no es el nuestro: "
+                        + nombreDeEsteDispositivo + "   rssi = " + rssi);
+            }
+            return;
+        }
+
+        // Ha entrado el dispositivo que nos interesa: el escaneo esta vivo.
+        this.ultimoAnuncioRecibido = System.currentTimeMillis();
+
+        Log.d(ETIQUETA_LOG, " mostrarInformacionDispositivoBTLLE(): empieza ");
         Log.d(ETIQUETA_LOG, "                                                     ");
         Log.d(ETIQUETA_LOG, " ****************************************************");
         Log.d(ETIQUETA_LOG, " ****** DISPOSITIVO DETECTADO BTLE ****************** ");
@@ -248,6 +349,73 @@ public class MainActivity extends AppCompatActivity {
 
         this.actualizarUltimaMedicion(textoMedida);
 
+        // ---------------------------------------------------------------------------------------
+        // ENVÍO AUTOMÁTICO AL SERVIDOR
+        //
+        // Solo se manda si el escaneo activo es el de "Buscar NUESTRO dispositivo" (el indicador
+        // está a true). Con el botón de "Buscar TODOS" esto no se hace, porque ese botón es
+        // para mirar qué hay alrededor y no para guardar cosas.
+        //
+        // OJO CON LO QUE SE MANDA: se manda el iBeacon TAL CUAL ha llegado del aire. No se
+        // guarda el rssi (que es la distancia aproximada y cambia cada vez), sino el txPower,
+        // que es el valor fijo que el propio beacon lleva dentro. Por eso aquí no sale el rssi.
+        //
+        // El filtro de duplicados está en enviarMedidaAlServidor(): como el mismo beacon se
+        // anuncia muchas veces por segundo, solo sale a la red la primera. Así la BBDD no se
+        // llena de copias idénticas.
+        // ---------------------------------------------------------------------------------------
+        if (this.enviarAlServidorCadaMedida) {
+
+            Log.d(ETIQUETA_LOG, " mostrarInformacionDispositivoBTLE(): mando la medida al servidor (automático)");
+
+            this.enviarLaMedidaAlServidor(tib, bluetoothDevice.getName());
+
+        } else {
+
+            Log.d(ETIQUETA_LOG, " mostrarInformacionDispositivoBTLE(): NO mando nada, este escaneo es solo para mirar");
+
+        } // ()
+
+    } // ()
+
+    // ---------------------------------------------------------------------------------------------
+    // DISEÑO: tib: TramaIBeacon, nombreEmisora: Text --> enviarLaMedidaAlServidor() -->
+    //
+    // Qué hace: le pasa al servicio los 5 campos de la Medida tal y como han salido del aire, y
+    //           que él los convierta en JSON y los mande por HTTP POST.
+    //
+    // QUÉ CAMPOS SE MANDAN Y CUALES NO, Y POR QUÉ
+    // -------------------------------------------
+    //     uuid          -> el del beacon, que aquí es "EPSG-GTI-PROY-3A"
+    //     major         -> el que traía el anuncio
+    //     minor         -> el valor medido (el de CO2 o el de temperatura)
+    //     txPower       -> el que traía el anuncio (fijo, -53)
+    //     nombreEmisora -> el nombre BLE del dispositivo ("GTI-3A-Jose")
+    //
+    // NO se manda el rssi: es la intensidad de la señal en este instante, o sea lo cerca que
+    // esté el móvil, y cambia con cada anuncio. No es un dato de la medición, es del camino.
+    // Y NO se manda la fecha: la pone el servidor, que es quien sabe cuándo la ha recibido.
+    // ---------------------------------------------------------------------------------------------
+    private void enviarLaMedidaAlServidor(TramaIBeacon tib, String nombreEmisora) {
+
+        // El servicio se crea la primera vez y se reutiliza después.
+        if (this.servicioParaEnviarAlServidor == null) {
+            this.servicioParaEnviarAlServidor = new ServicioEscucharBeacons();
+        } // ()
+
+        // OJO: Utilidades.bytesToInt() es lo que convierte los bytes del anuncio en el número
+        // de verdad. Sin esa conversión se mandaría el byte suelto, que es solo la mitad baja
+        // del número (por eso en el Log salen dos valores, el hexadecimal y el decimal).
+        this.servicioParaEnviarAlServidor.enviarMedidaAlServidor(
+
+                Utilidades.bytesToString(tib.getUUID()),
+                Utilidades.bytesToInt(tib.getMajor()),
+                Utilidades.bytesToInt(tib.getMinor()),
+                tib.getTxPower(),
+                nombreEmisora
+
+        ); // ()
+
     } // ()
 
     // ---------------------------------------------------------------------------------------------
@@ -297,26 +465,37 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onScanResult(int callbackType, ScanResult resultado) {
                 super.onScanResult(callbackType, resultado);
-                Log.d(ETIQUETA_LOG, "  buscarEsteDispositivoBTLE(): onScanResult() ");
 
-                mostrarInformacionDispositivoBTLE(resultado);
+                // El vigilante usa esta marca para saber que el escaneo SIGUE vivo.
+                MainActivity.this.ultimoAnuncioRecibido = System.currentTimeMillis();
+
+                MainActivity.this.mostrarInformacionDispositivoBTLE(resultado);
             }
 
             @Override
             public void onBatchScanResults(List<ScanResult> results) {
                 super.onBatchScanResults(results);
-                Log.d(ETIQUETA_LOG, "  buscarEsteDispositivoBTLE(): onBatchScanResults() ");
 
+                MainActivity.this.ultimoAnuncioRecibido = System.currentTimeMillis();
+
+                for (int i = 0; i < results.size(); i++) {
+                    MainActivity.this.mostrarInformacionDispositivoBTLE(results.get(i));
+                }
             }
 
             @Override
             public void onScanFailed(int errorCode) {
                 super.onScanFailed(errorCode);
-                Log.d(ETIQUETA_LOG, "  buscarEsteDispositivoBTLE(): onScanFailed() ");
+                Log.d(ETIQUETA_LOG, "  buscarEsteDispositivoBTLE(): onScanFailed() codigo = " + errorCode);
+                MainActivity.this.actualizarEstado("El escaneo ha fallado (código " + errorCode + ").");
             }
         };
 
-        ScanFilter sf = new ScanFilter.Builder().setDeviceName(dispositivoBuscado).build();
+// El nombre se guarda para compararlo DENTRO del callback (ver
+        // mostrarInformacionDispositivoBTLE), no para armar un ScanFilter. Ver el comentario
+        // largo del campo nombreDelDispositivoQueBuscamos para saber por qu�.
+        this.nombreDelDispositivoQueBuscamos = dispositivoBuscado;
+        this.dispositivosAjenosYaAvisados.clear();
 
         Log.d(ETIQUETA_LOG, "  buscarEsteDispositivoBTLE(): empezamos a escanear buscando: " + dispositivoBuscado);
 
@@ -324,15 +503,72 @@ public class MainActivity extends AppCompatActivity {
 
         ScanSettings settings = new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
 
-        ArrayList<ScanFilter> filtros = new ArrayList<ScanFilter>();
-        filtros.add(sf);
+        // SIN filtros a proposito: es lo que hace que llegue algo. El filtro por nombre se
+        // hacia en codigo, en el callback, y no antes.
+        this.elEscanner.startScan(null, settings, this.callbackDelEscaneo);
 
-        this.elEscanner.startScan(filtros, settings, this.callbackDelEscaneo);
+        // El vigilante necesita un punto de partida: si no, dariera el primer aviso a los
+        // SEGUNDOS_SIN_RESPUESTA_ANTES_DE_REINICIAR aunque acabemos de empezar.
+        this.ultimoAnuncioRecibido = System.currentTimeMillis();
+        this.arrancarElVigilanteDelEscaneo();
 
-        this.actualizarEstado("Escaneando sólo " + dispositivoBuscado + "...");
+        this.actualizarEstado("Escaneando s�lo " + dispositivoBuscado + "...");
 
         Log.d(ETIQUETA_LOG, " buscarEsteDispositivoBTLE(): termina");
     } // ()
+
+    // ---------------------------------------------------------------------------------------------
+    // DISEÑO: --> arrancarElVigilanteDelEscaneo() --> elVigilanteDelEscaneo.run() -->
+    //
+    // Qué hace: cada 6 segundos mira si ha entrado algún anuncio. Si pasan 6 segundos seguidos
+    //           sin ninguno, da el escaneo por muerto y lo vuelve a arrancar.
+    //
+    // Por qué: el Bluetooth del móvil a veces deja de escanear sin dar ningún error. No llega
+    //           ni onScanFailed() ni onScanResult(), así que la app se queda esperando para
+    //           siempre creyendo que está escaneando. Con este vigilante se recupera solo.
+    // ---------------------------------------------------------------------------------------------
+    private void arrancarElVigilanteDelEscaneo() {
+        this.elHandlerDelVigilante.removeCallbacks(this.elVigilanteDelEscaneo);
+        this.elHandlerDelVigilante.postDelayed(this.elVigilanteDelEscaneo,
+                SEGUNDOS_SIN_RESPUESTA_ANTES_DE_REINICIAR * 1000L);
+    } // ()
+
+    private void detenerElVigilanteDelEscaneo() {
+        this.elHandlerDelVigilante.removeCallbacks(this.elVigilanteDelEscaneo);
+    } // ()
+
+    private final Runnable elVigilanteDelEscaneo = new Runnable() {
+        @Override
+        public void run() {
+
+            if (MainActivity.this.nombreDelDispositivoQueBuscamos == null
+                    || MainActivity.this.callbackDelEscaneo == null) {
+                // No hay escaneo activo, no hay nada que vigilar.
+                return;
+            }
+
+            long pasaDesdeElUltimo = System.currentTimeMillis()
+                    - MainActivity.this.ultimoAnuncioRecibido;
+
+            if (pasaDesdeElUltimo > SEGUNDOS_SIN_RESPUESTA_ANTES_DE_REINICIAR * 1000L) {
+
+                Log.d(ETIQUETA_LOG, "VIGILANTE: " + (pasaDesdeElUltimo / 1000L)
+                        + " segundos sin recibir nada, reinicio el escaneo");
+
+                MainActivity.this.actualizarEstado("El escaneo se ha quedado parado. Reiniciando...");
+
+                // buscarEsteDispositivoBTLE() empieza parando el escaneo anterior, asi que
+                // llamarlo otra vez es justo la forma de reiniciarlo.
+                MainActivity.this.buscarEsteDispositivoBTLE(
+                        MainActivity.this.nombreDelDispositivoQueBuscamos);
+
+            } else {
+                // Todo bien, nos volvemos a mirar dentro del mismo rato.
+                MainActivity.this.elHandlerDelVigilante.postDelayed(this,
+                        SEGUNDOS_SIN_RESPUESTA_ANTES_DE_REINICIAR * 1000L);
+            }
+        }
+    };
 
     // ---------------------------------------------------------------------------------------------
     // DISEÑO: --> detenerBusquedaDispositivosBTLE() -->
@@ -341,6 +577,12 @@ public class MainActivity extends AppCompatActivity {
     private void detenerBusquedaDispositivosBTLE() {
 
         Log.d(ETIQUETA_LOG, " detenerBusquedaDispositivosBTLE(): empieza");
+
+        // El vigilante se para SIEMPRE primero, incluso en los casos en los que luego se
+        // vuelve antes de tiempo. Si no, se queda reiniciando un escaneo que ya no existe.
+        this.detenerElVigilanteDelEscaneo();
+        this.nombreDelDispositivoQueBuscamos = null;
+
         //COMPROBAMOS que haya un escaner activo
         if (this.callbackDelEscaneo == null) {
             Log.d(ETIQUETA_LOG, " detenerBusquedaDispositivosBTLE(): termina (no había escaneo)");
@@ -394,19 +636,43 @@ public class MainActivity extends AppCompatActivity {
     // ---------------------------------------------------------------------------------------------
     // DISEÑO: v: View --> botonBuscarDispositivosBTLEPulsado() -->
     // Qué hace: manejador del botón "buscar todos".
+    //
+    //           Este botón es de MIRAR, no de enviar: antes de arrancar el escaneo pone el
+    //           indicador de envío a false, para que ningún beacon que aparezca se mande al
+    //           servidor por sorpresa.
     // ---------------------------------------------------------------------------------------------
     public void botonBuscarDispositivosBTLEPulsado(View v) {
         Log.d(ETIQUETA_LOG, " boton buscar dispositivos BTLE Pulsado");
+
+        this.enviarAlServidorCadaMedida = false;
+
         this.buscarTodosLosDispositivosBTLE();
     } // ()
 
     // ---------------------------------------------------------------------------------------------
     // DISEÑO: v: View --> botonBuscarNuestroDispositivoBTLEPulsado() -->
-    // Qué hace: manejador del botón "buscar nuestro".
+    // Qué hace: manejador del botón "buscar nuestro". Este es el botón que hace el trabajo
+    //           completo de la app, en tres pasos y en este orden:
+    //
+    //             1. Pone el indicador de envío a true, para que cada medida que llegue se
+    //                mande sola a GuardarMedida.php.
+    //             2. Enciende el servicio en segundo plano, por si la app se cierra.
+    //             3. Arranca el escaneo filtrando por el nombre del beacon.
+    //
+    //           OJO CON EL ORDEN: el servicio se enciende ANTES de escanear a propósito. Si se
+    //           pusiera en marcha una vez escaneando, habría un hueco en el que llega un beacon,
+    //           se manda la medida y todavía no hay servicio de fondo. Así no.
     // ---------------------------------------------------------------------------------------------
     public void botonBuscarNuestroDispositivoBTLEPulsado(View v) {
         Log.d(ETIQUETA_LOG, " boton nuestro dispositivo BTLE Pulsado");
 
+        // (1) A partir de aquí, cada medida se manda sola.
+        this.enviarAlServidorCadaMedida = true;
+
+        // (2) Servicio de fondo encendido.
+        this.arrancarElServicio();
+
+        // (3) Y ahora a escuchar el beacon.
         this.buscarEsteDispositivoBTLE(NOMBRE_NUESTRO_DISPOSITIVO_BTLE);
 
     } // ()
@@ -422,28 +688,51 @@ public class MainActivity extends AppCompatActivity {
     } // ()
 
     // ---------------------------------------------------------------------------------------------
-    // DISEÑO: v: View --> botonArrancarServicioPulsado() -->
-    // Qué hace: si no está arrancado, crea el Intent con el tiempo de
-    //           espera y arranca el servicio.
+    // DISEÑO: --> arrancarElServicio() --> startService() -->
     //
-    //           (viene de la antigua MainActivityServicio)
+    // Qué hace: si el servicio no está ya arrancado, crea el Intent con el tiempo de espera
+    //           y lo arranca. Si ya estaba, no hace nada.
+    //
+    // POR QUÉ ESTÁ SUELTO Y NO DENTRO DEL BOTÓN
+    // ------------------------------------------
+    // Porque lo usan DOS sitios: el botón "Arrancar Servicio" y el botón "Buscar NUESTRO
+    // dispositivo". Si estuviera escrito dentro del botón, habría que copiarlo en los dos, y
+    // en cuanto uno de los dos cambiara se olvida el otro. Con un método suelto, los dos
+    // llaman al mismo sitio y solo hay una copia.
+    //
+    // OJO: esto es idempotente, o sea que llamarlo dos veces NO crea dos servicios. El
+    // elIntentDelServicio a null es lo que dice "todavía no lo he arrancado".
     // ---------------------------------------------------------------------------------------------
-    public void botonArrancarServicioPulsado(View v) {
-        Log.d(ETIQUETA_LOG, " boton arrancar servicio Pulsado");
+    private void arrancarElServicio() {
 
         if (this.elIntentDelServicio != null) {
             // ya estaba arrancado
             return;
-        }
+        } // ()
 
-        Log.d(ETIQUETA_LOG, " MainActivity.botonArrancarServicioPulsado : voy a arrancar el servicio");
+        Log.d(ETIQUETA_LOG, " MainActivity.arrancarElServicio() : voy a arrancar el servicio");
 
         this.elIntentDelServicio = new Intent(this, ServicioEscucharBeacons.class);
 
         this.elIntentDelServicio.putExtra("tiempoDeEspera", (long) 5000);
         startService(this.elIntentDelServicio);
 
+        Log.d(ETIQUETA_LOG, " MainActivity.arrancarElServicio() : servicio ARRANCADO");
+
         this.actualizarEstado("Servicio ARRANCADO.");
+
+    } // ()
+
+    // ---------------------------------------------------------------------------------------------
+    // DISEÑO: v: View --> botonArrancarServicioPulsado() -->
+    // Qué hace: manejador del botón "Arrancar Servicio".
+    //
+    //           (viene de la antigua MainActivityServicio)
+    // ---------------------------------------------------------------------------------------------
+    public void botonArrancarServicioPulsado(View v) {
+        Log.d(ETIQUETA_LOG, " boton arrancar servicio Pulsado");
+
+        this.arrancarElServicio();
 
     } // ()
 

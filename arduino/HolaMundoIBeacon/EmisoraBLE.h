@@ -153,6 +153,29 @@ public:
 
 	Bluefruit.setTxPower( (*this).txPower );
 	Bluefruit.setName( (*this).nombreEmisora );
+
+	// -----------------------------------------------------------------------------------------
+	// ESTA LIMPIEZA ES LA QUE ARREGLA QUE LA PLACA DEJE DE ANUNCIAR (2026-10-03)
+	// -----------------------------------------------------------------------------------------
+	// ScanResponse.addName() AÑADE el nombre al final de la respuesta de escaneo, no lo
+	// sustituye. Y esta función se llama DOS VECAS POR VUELTA del loop: una para el CO2 y otra
+	// para la temperatura.
+	//
+	// Sin esta línea el nombre "GTI-3A-Jose" (13 bytes) se amontonaba una tras otra, y el
+	// buffer de la respuesta de escaneo del nRF52840 solo aguanta 31 bytes:
+	//
+	//     vuelta 1, CO2      -> 13 bytes   (cabe)
+	//     vuelta 1, temperat -> 26 bytes   (cabe justo)
+	//     vuelta 2, CO2      -> 39 bytes   DESBORDA
+	//
+	// Al desbordar el paquete queda mal formado y la placa deja de anunciar DEL TODO, y en
+	// silencio: ningun error, ningun aviso por el puerto serie, sencillamente el movil se
+	// queda sin ver ningun beacon para siempre. Por eso el sintoma era "recibo una y luego
+	// nada mas".
+	//
+	// Con clearData() antes de addName() la respuesta se rehace limpia en cada anuncio,
+	// siempre cabe, y se puede anunciar mil veces seguidas sin problema.
+	Bluefruit.ScanResponse.clearData();
 	Bluefruit.ScanResponse.addName(); // para que envíe el nombre de emisora (?!)
 
 	//
@@ -169,8 +192,33 @@ public:
 	//
 	// empieza el anuncio, 0 = tiempo indefinido (ya lo pararán)
 	//
-	Bluefruit.Advertising.start( 0 ); 
-	
+	bool elAnuncioHaEmpezado = Bluefruit.Advertising.start( 0 );
+
+	// -----------------------------------------------------------------------------------------
+	// DIAGNOSTICO (2026-10-03)
+	// -----------------------------------------------------------------------------------------
+	// Antes el resultado de start() se tiraba a la basura y no se miraba para nada. Por eso,
+	// cuando la placa dejaba de anunciar, el puerto serie solo enseña "loop(): empieza" y
+	// "loop(): acaba" y no hay forma de saber que estaba pasando.
+	//
+	// Ahora se dice SIEMPRE que se manda y si ha podido arrancar. Si esto pone
+	// "!!! NO SE HA PODIDO EMPEZAR A ANUNCIAR !!!" el problema es del anuncio; si pone
+	// "emitiendo = 1" y aun asi el movil no ve nada, el problema es del movil o del filtro.
+	//
+	Globales::elPuerto.escribir( "     anuncio: major = " );
+	Globales::elPuerto.escribir( (int) major );
+	Globales::elPuerto.escribir( "   minor = " );
+	Globales::elPuerto.escribir( (int) minor );
+	Globales::elPuerto.escribir( "   start() = " );
+	Globales::elPuerto.escribir( elAnuncioHaEmpezado );
+	Globales::elPuerto.escribir( "   emitiendo = " );
+	Globales::elPuerto.escribir( (*this).estaAnunciando() );
+	Globales::elPuerto.escribir( "\n" );
+
+	if ( ! elAnuncioHaEmpezado ) {
+		Globales::elPuerto.escribir( "     !!! NO SE HA PODIDO EMPEZAR A ANUNCIAR !!!\n" );
+	}
+
   } // ()
 
   // .........................................................
