@@ -284,14 +284,17 @@ tr:nth-child(even) td { background: #f6f6f6; }   /* zebra, para no perder la fil
 
   <tr>
     <th>ID</th>
-    <th>FechaLectura</th>
-    <th>NombreEmisora</th>
-    <th>Uuid</th>
-    <th>Major</th>
-    <th>Minor</th>
+    <th>Fecha</th>
+<th>ID_Sensor</th>
+<th>Tipo_Medicion</th>
+<th>Valor_Medicion</th>
+    <!-- -->
+    <!-- -->
+    <!-- -->
+    <!-- -->
     <th>Magnitud</th>
     <th>Muestra</th>
-    <th>TxPower</th>
+    <!-- -->
   </tr>
 
 <?php foreach ( $lasMedidas as $unaMedida ) {

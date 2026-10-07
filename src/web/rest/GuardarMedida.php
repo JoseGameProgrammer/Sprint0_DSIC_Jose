@@ -171,7 +171,10 @@ error_log( 'GuardarMedida.php: cuerpo recibido = ' . $cuerpoPeticion );
 // major sea "abc" o que el uuid esté vacío lo decide la lógica, en
 // guardarMedida(), que es quien tiene las reglas del negocio. Aquí solo se
 // comprueba que la petición tenga la forma que dice el diseño.
-$camposObligatorios = array( 'uuid', 'major', 'minor', 'txPower', 'nombreEmisora' );
+$camposObligatorios = array( 'major', 'minor' );
+  $uuid = isset($datos['uuid']) ? $datos['uuid'] : 'desconocido';
+  $txPower = isset($datos['txPower']) ? $datos['txPower'] : 0;
+  $nombreEmisora = isset($datos['nombreEmisora']) ? $datos['nombreEmisora'] : 'desconocida';
 
 $faltanCampos = array();
 
@@ -198,11 +201,11 @@ if ( count( $faltanCampos ) > 0 ) {
 // Aquí es donde se llama a la VERDADERA función de negocio. El endpoint no
 // guarda nada por su cuenta: solo le pasa los 5 datos y espera un true/false.
 $guardada = guardarMedida(
-              $datos['uuid'],
+              $uuid,
               $datos['major'],
               $datos['minor'],
-              $datos['txPower'],
-              $datos['nombreEmisora']
+              $txPower,
+              $nombreEmisora
             );
 
 // Si la lógica ha devuelto true, la medida está dentro.

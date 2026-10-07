@@ -326,10 +326,10 @@ function filaDeMedida( unaMedida ) {
   var laFila = document.createElement( 'tr' );
 
   laFila.appendChild( celdaDe( unaMedida.id ) );
-  laFila.appendChild( celdaDe( unaMedida.minor ) );
-  laFila.appendChild( celdaDe( unaMedida.uuid ) );
-  laFila.appendChild( celdaDe( unaMedida.nombreEmisora ) );
-  laFila.appendChild( celdaDe( unaMedida.fechaLectura ) );
+  laFila.appendChild( celdaDe( unaMedida.fecha ) );
+  laFila.appendChild( celdaDe( unaMedida.idSensor ) );
+  laFila.appendChild( celdaDe( unaMedida.tipoMedicion ) );
+  laFila.appendChild( celdaDe( unaMedida.valorMedicion ) );
 
   return laFila;
 
