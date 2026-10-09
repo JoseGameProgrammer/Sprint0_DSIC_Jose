@@ -7,7 +7,7 @@ Ficheros: `HolaMundoIBeacon.ino`, `LED.h`, `PuertoSerie.h`, `Medidor.h`, `Public
 
 ---
 
-## 1. Diseño del Componente
+## 1. Component Design
 
 ### 1.1 Tipos fundamentales
 
@@ -313,7 +313,7 @@ El campo `minor` de 2 bytes transporta el valor medido, **con signo** (complemen
 
 ---
 
-## 2. Aclaraciones del Diseño
+## 2. Design Clarifications
 
 - **`ServicioEnEmisora` está implementado pero no se usa.** Ninguna clase lo instancia; solo se
   llega a él por el `#include` que hace `EmisoraBLE.h`. Se conserva porque forma parte del
@@ -352,7 +352,8 @@ El campo `minor` de 2 bytes transporta el valor medido, **con signo** (complemen
 
 ---
 
-## 3. Reglas Generales
+## 3. General Rules
+- **Programming Language:** Java 11
 
 - **Lenguaje de programación objetivo:** C++ para Arduino (nRF52840, Adafruit Bluefruit nRF52,
   framework Arduino con la biblioteca `Bluefruit`). Los ficheros de clase usan extensión `.h` y el
