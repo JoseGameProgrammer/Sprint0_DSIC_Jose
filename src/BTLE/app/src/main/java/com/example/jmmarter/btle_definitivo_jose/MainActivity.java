@@ -773,6 +773,35 @@ public class MainActivity extends AppCompatActivity {
         ServicioEscucharBeacons.probarEnviarMedidaAlServidor();
     } // ()
 
+
+    public void botonSimularBeaconPulsado(View v) {
+        Log.d(ETIQUETA_LOG, " boton simular beacon pulsado");
+        this.actualizarEstado("Simulando recepción de un iBeacon...");
+
+        // Simulamos un iBeacon: UUID conocido, major 2817 (tipo 11 -> CO2), minor aleatorio (400-800 ppm), txPower -53
+        String uuid = "EPSG-GTI-PROY-3A";
+        int major = 2817; // 11 << 8 + 1
+        int minor = 400 + (int)(Math.random() * 400); // random val 400-800
+        int txPower = -53;
+        String nombreEmisora = "GTI-Jose-Simulado";
+
+        // Mismo proceso que cuando recibimos uno real
+        if (this.servicioParaEnviarAlServidor == null) {
+            this.servicioParaEnviarAlServidor = new ServicioEscucharBeacons();
+        }
+        
+        this.servicioParaEnviarAlServidor.enviarMedidaAlServidor(uuid, major, minor, txPower, nombreEmisora);
+        
+        // Y actualizamos la UI (tal y como lo hace mostrarInformacionDispositivoBTLE y actualizarUltimaMedicionEnPantalla)
+        String textoMedicion = String.format(
+            "Última medición recibida: Tipo: %d, Valor: %d Emisora: %s",
+            major, minor, nombreEmisora
+        );
+        this.laEtiquetaUltimaMedicion.setText(textoMedicion);
+    }
+
+
+
     // ---------------------------------------------------------------------------------------------
     // DISEÑO: v: View --> botonPruebaPOSTPulsado() -->
     // Qué hace: manejador del botón de prueba del POST (venía de MainActivityREST).

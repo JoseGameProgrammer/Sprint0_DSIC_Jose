@@ -96,7 +96,7 @@ public class ServicioEscucharBeacons extends IntentService {
     //  #  firewall de Windows tiene que dejar entrar el puerto del servidor.
     //  #  ---------------------------------------------------------------------------------------
     // =============================================================================================
-    public static final String URL_BASE_SERVIDOR = "http://10.178.157.116:8080/rest/";
+    public static final String URL_BASE_SERVIDOR = "http://192.168.1.135:8080/rest/";
     public static final String RUTA_GUARDAR_MEDIDA = "GuardarMedida.php";
 
     // URL completa a la que se hace el POST de la medida.

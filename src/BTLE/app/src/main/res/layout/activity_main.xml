@@ -69,6 +69,16 @@
     <!-- ================= MEDIDA AL SERVIDOR REST ================= -->
 
     <Button
+        android:id="@+id/botonSimularBeacon"
+        android:text="Simular recepción de Beacon (CO2)"
+        android:onClick="botonSimularBeaconPulsado"
+        android:backgroundTint="#FF9800"
+        android:textColor="#FFFFFF"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+
+    <Button
         android:id="@+id/botonTestEnviarMedida"
         android:text="TEST AUTOMÁTICO: enviar medida al servidor"
         android:onClick="botonTestEnviarMedidaPulsado"
