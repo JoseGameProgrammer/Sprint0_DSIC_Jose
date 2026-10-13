@@ -23,18 +23,20 @@
 class PuertoSerie  {
 
 public:
-  // .........................................................
-  // .........................................................
+  // ---------------------------------------------------------
+  // DISEÑO: baudios: N --> PuertoSerie() -->
+  // Qué hace: constructor. Abre el puerto serie a la velocidad indicada.
+  // ---------------------------------------------------------
   PuertoSerie (long baudios) {
 	Serial.begin( baudios );
 	// mejor no poner esto aquí: while ( !Serial ) delay(10);   
   } // ()
 
-  // .........................................................
+  // ---------------------------------------------------------
   // DISEÑO: --> esperarDisponible() -->
   // Qué hace: bloquea hasta que el puerto serie esté listo
   //           (evita perder los primeros mensajes al arrancar).
-  // .........................................................
+  // ---------------------------------------------------------
   void esperarDisponible() {
 
 	while ( !Serial ) {
@@ -43,11 +45,11 @@ public:
 
   } // ()
 
-  // .........................................................
+  // ---------------------------------------------------------
   // DISEÑO: mensaje: T --> escribir() -->
   // Qué hace: escribe un mensaje por el puerto serie.
   //           Plantilla: sirve para textos y números.
-  // .........................................................
+  // ---------------------------------------------------------
   template<typename T>
   void escribir (T mensaje) {
 	Serial.print( mensaje );

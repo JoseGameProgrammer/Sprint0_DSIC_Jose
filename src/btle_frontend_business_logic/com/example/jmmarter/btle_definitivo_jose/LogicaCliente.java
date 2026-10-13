@@ -9,6 +9,10 @@ public class LogicaCliente {
 
     private ServicioEscucharBeacons elServicio = null;
 
+    // ------------------------------------------------------------------------------------
+    // DISEÑO: --> LogicaCliente() -->
+    // Qué hace: Constructor por defecto que inicializa el servicio interno de envío.
+    // ------------------------------------------------------------------------------------
     public LogicaCliente() {
         try {
             this.elServicio = new ServicioEscucharBeacons();
@@ -18,6 +22,10 @@ public class LogicaCliente {
         }
     }
 
+    // ------------------------------------------------------------------------------------
+    // DISEÑO: servicio: ServicioEscucharBeacons --> LogicaCliente() -->
+    // Qué hace: Constructor con inyección de dependencia para pruebas unitarias.
+    // ------------------------------------------------------------------------------------
     public LogicaCliente(ServicioEscucharBeacons servicio) {
         this.elServicio = servicio;
     }

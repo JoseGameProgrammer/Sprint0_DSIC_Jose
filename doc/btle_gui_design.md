@@ -48,7 +48,7 @@ TramaIBeacon = (
 ```
 
 `MainActivity` no tiene un tipo de datos propio; su estado son referencias a los objetos de
-plataforma y a los componentes:
+plataforma y al proxy de lógica de cliente:
 
 ```text
 MainActivity = (
@@ -61,7 +61,7 @@ MainActivity = (
     callbackDelEscaneo,
     elIntentDelServicio,
     enviarAlServidorCadaMedida: B,
-    servicioParaEnviarAlServidor,
+    laLogicaCliente: LogicaCliente,
     nombreDelDispositivoQueBuscamos: Text,
     dispositivosAjenosYaAvisados: [ Text ],
     elHandlerDelVigilante,
@@ -69,19 +69,6 @@ MainActivity = (
     laEtiquetaEstado,
     laEtiquetaUltimaMedicion,
     elVigilanteDelEscaneo
-)
-```
-
-`ServicioEscucharBeacons` mantiene el estado de deduplicación:
-
-```text
-ServicioEscucharBeacons = (
-    ETIQUETA_LOG: Text,
-    tiempoDeEspera: N,
-    seguir: B,
-    primeraMedida: B,
-    ultimoMajorEnviado: N,
-    ultimoMinorEnviado: Z
 )
 ```
 
@@ -131,52 +118,7 @@ El constructor lanza `IllegalArgumentException` si la trama tiene menos de 30 by
 bytes no cumplen la forma de un iBeacon. `MainActivity` captura esa excepción para que un
 anuncio BLE cualquiera no tumbe la aplicación.
 
-### 1.6 Cliente REST
-
-`PeticionarioREST` es una tarea asíncrona parametrizada por la petición:
-
-```text
-                    --------- PeticionarioREST ---------
-                    |
-                    | url: Text
-                    | metodo: Text
-                    | cuerpo: Text
-                    | comoFue: B
-                    | codigo: N
-                    | respuesta: Text
-                    |
-                    |
-                    --> PeticionarioREST() -->
-                    |
-                    |
-                B <-- doInBackground() <--
-                    |
-                    |
-  comoFue: B       --> onPostExecute() -->
-                    |
-                    ------------------------------
-```
-
-`doInBackground()` devuelve `B` indicando si la petición llegó a completarse, y deja el código
-HTTP y el cuerpo en `codigo` y `respuesta` para que los lea `onPostExecute()`.
-
-### 1.7 Envío de medidas y deduplicación
-
-```text
-uuid: Text, major: N, minor: Z, txPower: Z, nombreEmisora: Text
-                --> enviarMedidaAlServidor() -->
-
-uuid: Text, major: N, minor: Z, txPower: Z, nombreEmisora: Text
-                --> construirJSONMedida() --> Text
-
-                              --> probarEnviarMedidaAlServidor() --x
-```
-
-`enviarMedidaAlServidor()` descarta la medida cuando coincide con la anterior en `major` y
-`minor`. La comparación es contra **la última medida enviada**, no contra un histórico: el
-filtro evita ráfagas de un mismo anuncio repetido, no repeticiones acumuladas.
-
-### 1.8 Encadenamiento principal
+### 1.6 Encadenamiento principal
 
 ```text
 botonNuestroDispositivoPulsado() -->
@@ -186,7 +128,7 @@ botonNuestroDispositivoPulsado() -->
 callbackDelEscaneo.onScanResult() -->
         mostrarInformacionDispositivoBTLE( resultado ) -->
                 --> enviarLaMedidaAlServidor() -->
-                        --> enviarMedidaAlServidor() -->
+                        --> laLogicaCliente.guardarMedida() -->
 
 botonSimularBeaconPulsado() --> laLogicaCliente.guardarMedida() -->
 botonPruebaPOSTPulsado()  --> probarEnviarPOST() -->
@@ -194,47 +136,9 @@ botonPruebaGETPulsado()   --> probarEnviarGET() -->
 botonPruebaGET2Pulsado()  --> probarEnviarGET_Otra() -->
 ```
 
-### 1.9 Clases
-
-```text
-                  --------- ServicioEscucharBeacons ---------
-                  |
-                  | ETIQUETA_LOG: Text
-                  | tiempoDeEspera: N
-                  | seguir: B
-                  | primeraMedida: B
-                  | ultimoMajorEnviado: N
-                  | ultimoMinorEnviado: Z
-                  |
-                  |
-          --> ServicioEscucharBeacons() -->
-                  |
-                  |
-          --> parar() -->
-                  |
-                  |
-          --> onDestroy() -->
-                  |
-                  |
-  intent   --> onHandleIntent() -->
-                  |
-                  |
-  uuid, major, minor, txPower, nombreEmisora
-          --> enviarMedidaAlServidor() -->
-                  |
-                  |
-  uuid, major, minor, txPower, nombreEmisora
-          --> construirJSONMedida() --x
-                  |
-                  |
-          --> probarEnviarMedidaAlServidor() --x
-                  |
-                  ------------------------------
-```
-
-`MainActivity` es una Activity cuyos métodos son todos manejadores de `android:onClick`, el
+`MainActivity` es una Activity cuyos métodos son manejadores de `android:onClick`, el
 ciclo de vida de la Activity y el filtrado de resultados de escaneo. Su caja de estado es la
-declarada en 1.2.
+declarada en 1.2 y delega el envío de datos exclusivamente en `LogicaCliente` (`btle_frontend_business_logic`).
 
 ---
 
@@ -266,24 +170,13 @@ declarada en 1.2.
   todos los dispositivos la deja en `false`, porque ese botón es solo de diagnóstico y no debe
   publicar medidas de beacons ajenos.
 
-- **`servicioParaEnviarAlServidor()` no arranca el servicio.** Es una instancia creada
-  únicamente para poder llamar a `enviarMedidaAlServidor()`. El servicio de verdad lo arranca el
-  `Intent` del botón. Es el mismo mecanismo que usa el test automático del botón de verificación.
+- **Desacoplamiento mediante `laLogicaCliente`.** `MainActivity` no invoca directamente objetos de red (`PeticionarioREST`); delega cada medición en `laLogicaCliente.guardarMedida(...)` perteneciente a la capa `btle_frontend_business_logic`.
 
-- **`las medidas que fallan al enviarse no se reintentan.** El filtro actual marca la medida como
-  última antes de saber si el POST ha funcionado, así que si la petición falla, ese mismo valor no
-  vuelve a intentarse hasta que llegue otro distinto.
-
-- **El escaneo sigue ligados al ciclo de vida de la Activity.** `onDestroy()` detiene el escaneo
+- **El escaneo sigue ligado al ciclo de vida de la Activity.** `onDestroy()` detiene el escaneo
   y el servicio. Para que el escaneo sobreviva a la app en segundo plano de verdad haría falta un
   servicio en primer plano con el escaneo dentro, lo que además exigiría los permisos
   `BLUETOOTH_SCAN` en el manifiesto. Hoy el componente cumple "arranca el servicio" pero el
   escaneo no es autónomo.
-
-- **La URL del servidor está fijada en el código**
-  (`http://192.168.1.137:8080/rest/`). Con datos móviles no se alcanza una IP privada; la forma
-  fiable de probar es un punto de acceso wireless del propio móvil con el PC conectado, o ambos
-  equipos en la misma red local.
 
 ---
 

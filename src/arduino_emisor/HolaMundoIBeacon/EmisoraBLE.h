@@ -52,16 +52,16 @@ private:
 
 public:
 
-  // .........................................................
+  // ---------------------------------------------------------
   // Tipos de callback que gestionan la conexión GATT.
-  // .........................................................
+  // ---------------------------------------------------------
   using CallbackConexionEstablecida = void ( uint16_t connHandle );
   using CallbackConexionTerminada = void ( uint16_t connHandle, uint8_t reason);
 
-  // .........................................................
+  // ---------------------------------------------------------
   // DISEÑO: nombre: Text, fab: N, tx: Z --> EmisoraBLE() -->
   // Qué hace: guarda la configuración de la emisora.
-  // .........................................................
+  // ---------------------------------------------------------
   EmisoraBLE( const char * nombreEmisora_, const uint16_t fabricanteID_,
 			  const int8_t txPower_ ) 
 	:
@@ -76,11 +76,11 @@ public:
 	// por tanto NO_encenderEmisora();
   } // ()
 
-  // .........................................................
+  // ---------------------------------------------------------
   // DISEÑO: --> encenderEmisora() -->
   // Qué hace: inicializa la pila de Bluetooth (Bluefruit.begin())
   //           y se asegura de que no quede ningún anuncio previo.
-  // .........................................................
+  // ---------------------------------------------------------
   void encenderEmisora() {
 	// Serial.println ( "Bluefruit.begin() " );
 	 Bluefruit.begin(); 
@@ -89,12 +89,12 @@ public:
 	 (*this).detenerAnuncio();
   } // ()
 
-  // .........................................................
+  // ---------------------------------------------------------
   // DISEÑO: cbce: CallbackConexionEstablecida,
   //         cbct: CallbackConexionTerminada --> encenderEmisora() -->
   // Qué hace: enciende la emisora y, además, instala los callbacks
   //           de conexión/desconexión antes de anunciar.
-  // .........................................................
+  // ---------------------------------------------------------
   void encenderEmisora( CallbackConexionEstablecida cbce,
 						CallbackConexionTerminada cbct ) {
 
@@ -105,10 +105,10 @@ public:
 
   } // ()
 
-  // .........................................................
+  // ---------------------------------------------------------
   // DISEÑO: --> detenerAnuncio() -->
   // Qué hace: detiene el anuncio BLE actual (si se está emitiendo).
-  // .........................................................
+  // ---------------------------------------------------------
   void detenerAnuncio() {
 
 	if ( (*this).estaAnunciando() ) {
@@ -118,22 +118,22 @@ public:
 
   }  // ()
   
-  // .........................................................
+  // ---------------------------------------------------------
   // DISEÑO: --> estaAnunciando() <-- B
   // Qué hace: devuelve true si la emisora está emitiendo anuncios.
-  // .........................................................
+  // ---------------------------------------------------------
   bool estaAnunciando() {
 	return Bluefruit.Advertising.isRunning();
   } // ()
 
-  // .........................................................
+  // ---------------------------------------------------------
   // DISEÑO: beaconUUID: [Z]_16, major: Z, minor: Z, rssi: Z
   //                                   --> emitirAnuncioIBeacon() -->
   // Qué hace: construye y difunde un anuncio iBeacon estándar de
   //           30 bytes: prefijo Apple(9) + uuid(16) + major(2) +
   //           minor(2) + txPower(1). Major/minor transportan aquí
   //           la medición del emisor.
-  // .........................................................
+  // ---------------------------------------------------------
   void emitirAnuncioIBeacon( uint8_t * beaconUUID, int16_t major, int16_t minor, uint8_t rssi ) {
 
 	//
@@ -221,7 +221,7 @@ public:
 
   } // ()
 
-  // .........................................................
+  // ---------------------------------------------------------
   //
   // Ejemplo de Beacon (31 bytes)
   //
@@ -262,7 +262,7 @@ public:
   //
   // 0x01, // este es el byte 31 = BLE_GAP_ADV_SET_DATA_SIZE_MAX, parece que sobra
   //
-  // .........................................................
+  // ---------------------------------------------------------
   // DISEÑO: carga: Text, tamanyoCarga: N
   //                                   --> emitirAnuncioIBeaconLibre() -->
   // Qué hace: emite como un iBeacon (con el prefijo Apple fijo)
@@ -270,7 +270,7 @@ public:
   //           normalmente ocuparían uuid+major+minor+txPower.
   //           Se usa para probar qué bytes transporta el paquete
   //           (los 21 últimos bytes del anuncio de 31 bytes).
-  // .........................................................
+  // ---------------------------------------------------------
   void emitirAnuncioIBeaconLibre( const char * carga, const uint8_t tamanyoCarga ) {
 
 	(*this).detenerAnuncio(); 
@@ -331,12 +331,12 @@ public:
 	Globales::elPuerto.escribir( "emitiriBeacon libre  Bluefruit.Advertising.start( 0 );  \n");
   } // ()
 
-  // .........................................................
+  // ---------------------------------------------------------
   // DISEÑO: servicio: ServicioEnEmisora --> B
   // Qué hace: añade al contenido del anuncio un servicio GATT
   //           (se convierte implícitamente a BLEService). Devuelve
   //           si se pudo añadir.
-  // .........................................................
+  // ---------------------------------------------------------
   bool anyadirServicio( ServicioEnEmisora & servicio ) {
 
 	Globales::elPuerto.escribir( " Bluefruit.Advertising.addService( servicio ); \n");
@@ -354,21 +354,21 @@ public:
   } // ()
 
   
-  // .........................................................
+  // ---------------------------------------------------------
   // DISEÑO (caso base): servicio: ServicioEnEmisora --> B
   // Qué hace: caso base de la recursión variádica: añade el
   //           servicio sin características extra.
-  // .........................................................
+  // ---------------------------------------------------------
   bool anyadirServicioConSusCaracteristicas( ServicioEnEmisora & servicio ) { 
 	return (*this).anyadirServicio( servicio );
   } // 
 
-  // .........................................................
+  // ---------------------------------------------------------
   // DISEÑO (caso recursivo): servicio: ServicioEnEmisora,
   //                          ...caract: Caracteristica --> B
   // Qué hace: añade una característica al servicio y sigue con el
   //           resto de la lista variádica.
-  // .........................................................
+  // ---------------------------------------------------------
   template <typename ... T>
   bool anyadirServicioConSusCaracteristicas( ServicioEnEmisora & servicio,
 											 ServicioEnEmisora::Caracteristica & caracteristica,
@@ -380,11 +380,11 @@ public:
 	
   } // ()
 
-  // .........................................................
+  // ---------------------------------------------------------
   // DISEÑO: servicio: ServicioEnEmisora, ...caract: Caracteristica --> B
   // Qué hace: igual que el anterior pero, al terminar, activa el
   //           servicio (lo registra en la pila BLE).
-  // .........................................................
+  // ---------------------------------------------------------
   template <typename ... T>
   bool anyadirServicioConSusCaracteristicasYActivar( ServicioEnEmisora & servicio,
 													 // ServicioEnEmisora::Caracteristica & caracteristica,
@@ -398,31 +398,31 @@ public:
 	
   } // ()
 
-  // .........................................................
+  // ---------------------------------------------------------
   // DISEÑO: cb: CallbackConexionEstablecida
   //                --> instalarCallbackConexionEstablecida() -->
   // Qué hace: registra el callback que se invocará cuando un
   //           cliente BLE se conecte a la emisora.
-  // .........................................................
+  // ---------------------------------------------------------
   void instalarCallbackConexionEstablecida( CallbackConexionEstablecida cb ) {
 	Bluefruit.Periph.setConnectCallback( cb );
   } // ()
 
-  // .........................................................
+  // ---------------------------------------------------------
   // DISEÑO: cb: CallbackConexionTerminada
   //                --> instalarCallbackConexionTerminada() -->
   // Qué hace: registra el callback que se invocará cuando un
   //           cliente BLE se desconecte de la emisora.
-  // .........................................................
+  // ---------------------------------------------------------
   void instalarCallbackConexionTerminada( CallbackConexionTerminada cb ) {
 	Bluefruit.Periph.setDisconnectCallback( cb );
   } // ()
 
-  // .........................................................
+  // ---------------------------------------------------------
   // DISEÑO: connHandle: N --> getConexion() <-- BLEConnection
   // Qué hace: devuelve el objeto de conexión BLE asociado a un
   //           identificador de conexión dado.
-  // .........................................................
+  // ---------------------------------------------------------
   BLEConnection * getConexion( uint16_t connHandle ) {
 	return Bluefruit.Connection( connHandle );
   } // ()

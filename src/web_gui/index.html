@@ -19,26 +19,10 @@
      - tipoMedicion  -> columna "Tipo"          (tipo Text)
      - valorMedicion -> columna "Valor"         (tipo Z, con signo)
 
-  Ni major ni txPower salen en pantalla. major es el otro trozo de la medición, y
-  txPower es el valor en dBm de la señal: el diseño de la interfaz no tiene columna
-  para ninguno de los dos. Los dos siguen llegando en el JSON, y el backend los
-  guarda igual, pero de momento no se enseñan. Si algún día se quiere enseñar el
-  major, es añadir una columna más y pintar el campo; con el txPower, igual. No
-  hace falta tocar el servidor para nada.
-
- NOTA SOBRE LA COLUMNA "MEDICIÓN"
- --------------------------------
- El enunciado (prompt 5, punto 3) dice que esta columna pinta el campo minor
- de la Medida. Se pintea minor a secas, sin el major delante.
-
- OJO: en el prompt 6 esta columna no estaba definida, solo decía "Medición", y
- aquí se había puesto major.minor. Al llegar el prompt 5 con la definición
- exacta ("id, minor (Medición), uuid, nombreEmisora, fechaLectura") se ha
- cambiado a minor, que es lo que dice el diseño de verdad.
-
- Si algún día se quiere enseñar también el major, major ya viene en el JSON:
- sería añadir una columna más y pintar el campo. No hace falta tocar el
- servidor para nada.
+  El diseño de las tablas muestra exactamente las 5 columnas de la tabla Medidas
+  definida en web_database_design.md: ID, Fecha, ID Sensor, Tipo y Valor.
+  El campo major y txPower se procesan en el backend para clasificar la magnitud (CO2/TEMPERATURA)
+  y asignar el valor con signo correspondiente.
 
  CÓMO SE LLENAN LAS TABLAS
  -------------------------

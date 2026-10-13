@@ -135,13 +135,13 @@ namespace Loop {
   uint8_t cont = 0;
 };
 
-// ..............................................................
+// --------------------------------------------------------------
 // DISEÑO: --> loop() -->
 // Qué hace: bucle principal infinito. Incrementa el contador,
 //           hace la señal de vida (LED), mide CO2 y temperatura y
 //           las publica como iBeacon, y finalmente prueba el envío
 //           de una carga libre de 21 bytes (sin formato iBeacon).
-// ..............................................................
+// --------------------------------------------------------------
 void loop () {
 
   using namespace Loop;

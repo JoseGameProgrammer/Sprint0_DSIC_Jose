@@ -62,18 +62,10 @@ require_once '../web_business_logic/LogicaMedidas.php';
 // Tiene que ser lo PRIMERO que se escriba, antes de ningún echo.
 header('Content-Type: application/json; charset=utf-8');
 
-/*
- * Imprime la respuesta y termina el script.
- *
- * Se mete en una función aparte porque hay varios caminos de salida (petición
- * que no es POST, JSON roto, campos que faltan, resultado de la lógica) y todos
- * tienen que terminar de la misma manera: sueltar el JSON y salir. Si se
- * escribiera "echo" suelto en cada caso, un fallo de última hora podría dejar
- * medio JSON impreso.
- *
- * @param int    $codigoError 0 = todo bien, 1 = error.
- * @param string $mensaje     Texto que verá el cliente.
- */
+// -------------------------------------------------------------------------------------------------
+// DISEÑO: codigoError: N, mensaje: Text --> responder() -->
+// Qué hace: imprime la respuesta JSON con el código de error y mensaje, y termina el script.
+// -------------------------------------------------------------------------------------------------
 function responder( $codigoError, $mensaje ) {
 
   // El array se monta en el ORDEN en el que se quiere que salga el JSON:

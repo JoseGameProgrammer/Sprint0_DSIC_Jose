@@ -45,7 +45,7 @@ import java.util.Set;
 //       mostrarInformacionDispositivoBTLE(resultado) -->
 //           --> TramaIBeacon() + Utilidades.xxx()
 //           --> enviarLaMedidaAlServidor() -->
-//                   --> ServicioEscucharBeacons.enviarMedidaAlServidor() -->
+//                   --> laLogicaCliente.guardarMedida() -->
 //
 //   botonArrancarServicioPulsado(v) --> arrancarElServicio() --> startService() -->
 //   botonDetenerServicioPulsado(v)  --> stopService() -->

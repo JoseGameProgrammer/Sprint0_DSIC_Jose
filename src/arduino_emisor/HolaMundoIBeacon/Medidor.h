@@ -25,11 +25,11 @@
 // ------------------------------------------------------
 class Medidor {
 
-  // .....................................................
-  // .....................................................
+  // -----------------------------------------------------
+  // -----------------------------------------------------
 private:
 
-  // .....................................................
+  // -----------------------------------------------------
   // Rangos de la simulación.
   //
   // Son los valores que dice el enunciado: CO2 entre 234 y 236 ppm, y
@@ -40,7 +40,7 @@ private:
   // devuelve 234 y 235, porque el máximo queda FUERA. Por eso abajo se
   // pone random( CO2_MINIMO, CO2_MAXIMO + 1 ). Ese "+ 1" es lo que
   // convierte "semiabierto" en "cerrado".
-  // .....................................................
+  // -----------------------------------------------------
   static const int CO2_MINIMO         = 234;
   static const int CO2_MAXIMO         = 236;
   static const int TEMPERATURA_MINIMA = -13;
@@ -48,13 +48,13 @@ private:
 
 public:
 
-  // .....................................................
+  // -----------------------------------------------------
   // DISEÑO: --> Medidor() -->
-  // .....................................................
+  // -----------------------------------------------------
   Medidor(  ) {
   } // ()
 
-  // .....................................................
+  // -----------------------------------------------------
   // DISEÑO: --> iniciarMedidor() -->
   // Qué hace: prepara el sensor y, ADEMÁS, siembra el generador de
   //           números aleatorios.
@@ -70,7 +70,7 @@ public:
   // la placa. Como la pila BLE tarda un rato en levantarse (eso pasa justo
   // antes de que setup() llegue aquí), el número ya no es cero y sirve.
   // No es aleatorio de verdad, pero para simular un sensor da igual.
-  // .....................................................
+  // -----------------------------------------------------
   void iniciarMedidor() {
 
 	// randomSeed() no muta este objeto (toca el generador global de
@@ -80,7 +80,7 @@ public:
 
   } // ()
 
-  // .....................................................
+  // -----------------------------------------------------
   // DISEÑO: --> medirCO2() <-- Z
   // Qué hace: devuelve la concentración de CO2 "medida".
   //
@@ -92,12 +92,12 @@ public:
   //
   //           OJO CON EL "+ 1" del final: es lo que hace que 236 sea
   //           posible. Sin él, el 236 no saldría nunca.
-  // .....................................................
+  // -----------------------------------------------------
   int medirCO2() {
 	return random( CO2_MINIMO, CO2_MAXIMO + 1 );
   } // ()
 
-  // .....................................................
+  // -----------------------------------------------------
   // DISEÑO: --> medirTemperatura() <-- Z
   // Qué hace: devuelve la temperatura "medida".
   //
@@ -115,7 +115,7 @@ public:
   //           Utilidades.bytesToInt() interpreta los bytes en
   //           complemento a dos, y por eso vuelve a salir -13 en
   //           pantalla y es lo que se guarda en la BBDD.
-  // .....................................................
+  // -----------------------------------------------------
   int medirTemperatura() {
 	return random( TEMPERATURA_MINIMA, TEMPERATURA_MAXIMA + 1 );
   } // ()

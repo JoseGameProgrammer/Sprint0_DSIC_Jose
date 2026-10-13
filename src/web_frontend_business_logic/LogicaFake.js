@@ -13,12 +13,10 @@
 //
 //   Medida = (
 //       id: N,
-//       uuid: Text,
-//       major: N,
-//       minor: Z,
-//       txPower: Z,
-//       nombreEmisora: Text,
-//       fechaLectura: Text
+//       fecha: Text,
+//       idSensor: N,
+//       tipoMedicion: Text,
+//       valorMedicion: Z
 //   )
 //
 // QUÉ ES ESTE FICHERO

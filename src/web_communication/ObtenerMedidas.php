@@ -17,8 +17,8 @@
 //       "medidas": [ Medida ]
 //   }
 //
-//   donde Medida = ( id: N, uuid: Text, major: N, minor: Z,
-//                    txPower: Z, nombreEmisora: Text, fechaLectura: Text )
+//   donde Medida = ( id: N, fecha: Text, idSensor: N,
+//                    tipoMedicion: Text, valorMedicion: Z )
 //
 // --------------------------------------------------------------------------------------------------
 // QUÉ ES ESTE FICHERO
@@ -65,11 +65,10 @@ require_once '../web_business_logic/LogicaMedidas.php';
 // Cabecera de respuesta: todo lo que devuelva este endpoint es JSON en UTF-8.
 header('Content-Type: application/json; charset=utf-8');
 
-/*
- * Imprime la respuesta y termina el script.
- *
- * @param array $lasMedidas Lista de Medida que devuelve obtenerMedidas().
- */
+// -------------------------------------------------------------------------------------------------
+// DISEÑO: lasMedidas: [ Medida ] --> responderConMedidas() -->
+// Qué hace: imprime la respuesta JSON con la lista de medidas y termina el script.
+// -------------------------------------------------------------------------------------------------
 function responderConMedidas( $lasMedidas ) {
 
   // El diseño pide { "medidas": [ ... ] }, así que la lista va dentro de una
@@ -133,8 +132,8 @@ error_log( 'ObtenerMedidas.php: se piden ' . $cuantasComoMaximo . ' medidas como
 // 3) LLAMADA A LA LÓGICA Y GENERACIÓN DEL JSON DE SALIDA
 // -------------------------------------------------------------------------------------------------
 // La única llamada a la lógica de este endpoint. Devuelve un array de Medida,
-// cada una con sus 7 claves (id, uuid, major, minor, txPower, nombreEmisora,
-// fechaLectura), ya ordenadas de la más reciente a la más antigua.
+// cada una con sus 5 claves (id, fecha, idSensor, tipoMedicion, valorMedicion),
+// ya ordenadas de la más reciente a la más antigua.
 $listaMedidas = obtenerMedidas( $cuantasComoMaximo );
 
 responderConMedidas( $listaMedidas );
