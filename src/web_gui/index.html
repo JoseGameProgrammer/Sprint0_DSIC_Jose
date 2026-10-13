@@ -7,19 +7,17 @@
  TIPO DE DATO QUE SE PINTA EN LAS TABLAS (en nuestra notación oficial):
 
      Medida = ( id: N,
-                uuid: Text,
-                major: N,
-                minor: Z,
-                txPower: Z,
-                nombreEmisora: Text,
-                fechaLectura: Text )
+                fecha: Text,
+                idSensor: N,
+                tipoMedicion: Text,
+                valorMedicion: Z )
 
- De los 7 campos de Medida se pintean estos en las tablas:
+ Los 5 campos de Medida se pintan en las tablas:
      - id            -> columna "ID"            (tipo N, sin signo)
-     - minor         -> columna "Medición"      (tipo Z, con signo)
-     - uuid          -> columna "Uuid"          (tipo Text)
-     - nombreEmisora -> columna "Nombre Emisora"(tipo Text)
-     - fechaLectura  -> columna "Fecha y Hora"  (tipo Text, formato "AAAA-MM-DD HH:MM:SS")
+     - fecha         -> columna "Fecha"         (tipo Text, formato "AAAA-MM-DD HH:MM:SS")
+     - idSensor      -> columna "ID Sensor"     (tipo N, sin signo)
+     - tipoMedicion  -> columna "Tipo"          (tipo Text)
+     - valorMedicion -> columna "Valor"         (tipo Z, con signo)
 
   Ni major ni txPower salen en pantalla. major es el otro trozo de la medición, y
   txPower es el valor en dBm de la señal: el diseño de la interfaz no tiene columna

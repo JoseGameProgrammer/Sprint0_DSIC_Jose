@@ -8,7 +8,7 @@
 // Si el byte alto del major se mueve, el móvil deja de saber si lo que ve es una
 // concentración de CO2 o una temperatura. Estas pruebas lo fijan.
 //
-// Compilar y ejecutar:  ver ejecutar_tests.bat
+// Compilar y ejecutar:  ver ejecuta_pruebas.bat
 
 #include "EntornoArduinoFalso.h"
 #include "../HolaMundoIBeacon/Publicador.h"

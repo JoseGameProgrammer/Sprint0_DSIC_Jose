@@ -3,11 +3,11 @@
 Componente: **aplicación Android** que escanea beacons BLE iBeacon, los desempaqueta y publica
 cada medición nueva en el servidor REST.
 
-Código correspondiente: `src/BTLE/`
-Ficheros: `app/src/main/java/com/example/jmmarter/btle_definitivo_jose/{MainActivity, ServicioEscucharBeacons, PeticionarioREST, TramaIBeacon, Utilidades}.java`
+Código correspondiente: `src/btle_gui/`
+Ficheros: `app/src/main/java/com/example/jmmarter/btle_definitivo_jose/{MainActivity, TramaIBeacon, Utilidades}.java`
 
 Estructura: es un proyecto de Android Studio completo y se abre directamente la carpeta
-`src/BTLE/`. Contiene `settings.gradle.kts`, `build.gradle.kts`, el catálogo `gradle/libs.versions.toml`,
+`src/btle_gui/`. Contiene `settings.gradle.kts`, `build.gradle.kts`, el catálogo `gradle/libs.versions.toml`,
 el *wrapper* y el módulo `app/` con `build.gradle.kts`, `AndroidManifest.xml`, `res/` y el código
 en la disposición estándar `app/src/{main,test,androidTest}/java`.
 
@@ -188,6 +188,7 @@ callbackDelEscaneo.onScanResult() -->
                 --> enviarLaMedidaAlServidor() -->
                         --> enviarMedidaAlServidor() -->
 
+botonSimularBeaconPulsado() --> laLogicaCliente.guardarMedida() -->
 botonPruebaPOSTPulsado()  --> probarEnviarPOST() -->
 botonPruebaGETPulsado()   --> probarEnviarGET() -->
 botonPruebaGET2Pulsado()  --> probarEnviarGET_Otra() -->
@@ -330,7 +331,7 @@ declarada en 1.2.
   La estrategia es doble: (a) tests unitarios JUnit en JVM para `Utilidades` y `TramaIBeacon`, que
   no dependen del dispositivo; (b) tests de instrumentación con `Espresso` para el recorrido de
   la interfaz. Los tests de red, que son los que verifican el envío real, se cubren además con
-  las pruebas del lado servidor (`src/web/rest/testServidorREST.php`).
+  las pruebas del lado servidor (`src/web_communication/testServidorREST.php`).
 
   #### Los tests que hay escritos
 
@@ -338,16 +339,17 @@ declarada en 1.2.
   | :--- | :--- | :--- | ---: |
   | `app/src/test/.../UtilidadesTest.java` | JUnit, en el PC | Las 8 conversiones de `Utilidades`, con atención al signo: que `0xFFF3` devuelve -13, que `0x0B01` devuelve 2817 (CO2) y que `0x0C01` devuelve 3073 (temperatura). También los tres rechazos: texto que no mide 16, texto no hexadecimal y más de 4 bytes en `bytesToIntOK()`. | 32 |
   | `app/src/test/.../TramaIBeaconTest.java` | JUnit, en el PC | Que el troceado saca cada campo de su posición exacta, con una trama de 30 bytes montada igual que la que arma la placa. Incluye el contrato entero: `major / 256` da el tipo de medición y el `minor` negativo sale con signo. | 20 |
+  | `app/src/test/.../LogicaClienteTest.java` | JUnit, en el PC | Valida el contrato del proxy cliente (`guardarMedida`) verificando validación de nulos y delegación limpia. | 3 |
   | `app/src/androidTest/.../PruebasEnElDispositivo.java` | Instrumentación, **necesita el móvil** | Que los permisos `BLUETOOTH_SCAN`, `BLUETOOTH_CONNECT` e `INTERNET` estén concedidos, y que el dispositivo tenga hardware BLE. El permiso de escaneo es el que más caro sale: sin él el escáner arranca y no entra ni un `onScanResult()`. | 7 |
 
-  Los 52 tests de JUnit se ejecutan sin móvil con `.\gradlew :app:testDebugUnitTest`. Los de
+  Los 55 tests de JUnit se ejecutan sin móvil con `.\gradlew :app:testDebugUnitTest`. Los de
   instrumentación necesitan el teléfono conectado: `.\gradlew :app:connectedDebugAndroidTest`.
 
   Se han comprobado rompiendo el código a propósito: si el `minor` se trocea desde la posición
-  26 en vez de la 27, fallan 3 pruebas de `TramaIBeaconTest`; y las 52 pasan con el código
+  26 en vez de la 27, fallan 3 pruebas de `TramaIBeaconTest`; y las 55 pasan con el código
   correcto.
 
-  #### Limitación conocida que dej documentada
+  #### Limitación conocida que dejé documentada
 
   `Utilidades.bytesToIntOK()` calcula el signo con un `cast` a `byte`, que solo conserva los 8
   bits bajos. Acierta de -1 a -128, pero de -129 en adelante se equivoca: `-32768` devuelve `0`.

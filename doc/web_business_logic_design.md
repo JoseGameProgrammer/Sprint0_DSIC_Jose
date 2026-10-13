@@ -3,15 +3,16 @@
 ## 1. Component Design
 
 ### 1.1 Tipos fundamentales
-| Smbolo | Tipo lgico | Representacin en el cdigo |
+| Símbolo | Tipo lógico | Representación en el código |
 | :--- | :--- | :--- |
-| `N` | Nmero natural | `int` |
+| `N` | Número natural | `int` |
 | `Z` | Entero con signo | `int` |
 | `B` | Booleano | `bool` |
 | `Text` | Cadena | `string` |
-| `VoF` | Valor de verdad | `true` / `false` |
 
-### 1.2 Agregacin principal
+### 1.2 Agregación principal y Alineación con Base de Datos
+La entidad `Medida` se mapea directamente con el esquema relacional de la tabla `Medidas` definido en `web_database_design.md`:
+
 ```text
 Medida = (
     id: N,
@@ -23,20 +24,26 @@ Medida = (
 TablaMedidas = [ Medida ]
 ```
 
-### 1.3 Lgica del negocio
-Funciones puras sin dependencias de HTTP ni de bases de datos de forma directa en su firma.
+- Mapeo con `web_database_design.md`:
+  - `id` $\rightarrow$ Columna `ID` (`INTEGER PRIMARY KEY`)
+  - `fecha` $\rightarrow$ Columna `Fecha` (`TEXT`)
+  - `idSensor` $\rightarrow$ Columna `ID_Sensor` (`INTEGER`)
+  - `tipoMedicion` $\rightarrow$ Columna `Tipo_Medicion` (`TEXT`)
+  - `valorMedicion` $\rightarrow$ Columna `Valor_Medicion` (`INTEGER`)
+
+### 1.3 Lógica del negocio
+Funciones puras sin dependencias de HTTP ni de protocolos de transporte en sus firmas.
 
 ```text
-uuid (opcional): Text, major: N, minor: Z, txPower (opcional): Z, nombreEmisora (opcional): Text --> guardarMedida() --> B
+uuid: Text, major: N, minor: Z, txPower: Z, nombreEmisora: Text --> guardarMedida() --> B
 cuantasComoMaximo: N --> obtenerMedidas() <-- [ Medida ]
 --> conectarBBDD() --x
-nombre: Text, password: Text --> hacerLogin() --> VoF
-usuario: Text --> diHola() --> ( nombre: Text, saludo: Text )
 ```
 
 ## 2. Design Clarifications
 
-- La capa lgica es 100% independiente del framework web o de transporte.
+- La capa lógica es 100% independiente del framework web o de transporte.
+- Las operaciones de persistencia interactúan exclusivamente con la base de datos SQLite y la tabla `Medidas` definida en `web_database_design.md`.
 
 ## 3. General Rules
 

@@ -113,16 +113,9 @@ public class MainActivity extends AppCompatActivity {
     private boolean enviarAlServidorCadaMedida = false;
 
     // ---------------------------------------------------------------------------------------------
-    // Instancia del servicio usada SOLO para poder llamar a enviarMedidaAlServidor().
-    //
-    // OJO: esto NO arranca el servicio de verdad. El servicio de verdad lo arranca el Intent que
-    // guarda el botón. Aquí lo único que se hace es tener un objeto con el que llamar al
-    // método, que es justo lo que ya hace el test automático (ver
-    // ServicioEscucharBeacons.probarEnviarMedidaAlServidor).
-    //
-    // Está a null hasta que hace falta, y se reutiliza para no crear uno por cada medida.
+    // Instancia del proxy de lógica de cliente para guardar medidas sin acoplar la GUI al transporte.
     // ---------------------------------------------------------------------------------------------
-    private ServicioEscucharBeacons servicioParaEnviarAlServidor = null;
+    private LogicaCliente laLogicaCliente = new LogicaCliente();
 
     // ---------------------------------------------------------------------------------------------
     // POR QUE EL FILTRO POR NOMBRE SE HACE EN CODIGO Y NO CON ScanFilter
@@ -397,25 +390,13 @@ public class MainActivity extends AppCompatActivity {
     // Y NO se manda la fecha: la pone el servidor, que es quien sabe cuándo la ha recibido.
     // ---------------------------------------------------------------------------------------------
     private void enviarLaMedidaAlServidor(TramaIBeacon tib, String nombreEmisora) {
-
-        // El servicio se crea la primera vez y se reutiliza después.
-        if (this.servicioParaEnviarAlServidor == null) {
-            this.servicioParaEnviarAlServidor = new ServicioEscucharBeacons();
-        } // ()
-
-        // OJO: Utilidades.bytesToInt() es lo que convierte los bytes del anuncio en el número
-        // de verdad. Sin esa conversión se mandaría el byte suelto, que es solo la mitad baja
-        // del número (por eso en el Log salen dos valores, el hexadecimal y el decimal).
-        this.servicioParaEnviarAlServidor.enviarMedidaAlServidor(
-
+        this.laLogicaCliente.guardarMedida(
                 Utilidades.bytesToString(tib.getUUID()),
                 Utilidades.bytesToInt(tib.getMajor()),
                 Utilidades.bytesToInt(tib.getMinor()),
                 tib.getTxPower(),
                 nombreEmisora
-
-        ); // ()
-
+        );
     } // ()
 
     // ---------------------------------------------------------------------------------------------
@@ -774,6 +755,10 @@ public class MainActivity extends AppCompatActivity {
     } // ()
 
 
+    // ---------------------------------------------------------------------------------------------
+    // DISEÑO: v: View --> botonSimularBeaconPulsado() -->
+    // Qué hace: simula la recepción de un iBeacon de CO2 e invoca la lógica de cliente.
+    // ---------------------------------------------------------------------------------------------
     public void botonSimularBeaconPulsado(View v) {
         Log.d(ETIQUETA_LOG, " boton simular beacon pulsado");
         this.actualizarEstado("Simulando recepción de un iBeacon...");
@@ -786,11 +771,7 @@ public class MainActivity extends AppCompatActivity {
         String nombreEmisora = "GTI-Jose-Simulado";
 
         // Mismo proceso que cuando recibimos uno real
-        if (this.servicioParaEnviarAlServidor == null) {
-            this.servicioParaEnviarAlServidor = new ServicioEscucharBeacons();
-        }
-        
-        this.servicioParaEnviarAlServidor.enviarMedidaAlServidor(uuid, major, minor, txPower, nombreEmisora);
+        this.laLogicaCliente.guardarMedida(uuid, major, minor, txPower, nombreEmisora);
         
         // Y actualizamos la UI (tal y como lo hace mostrarInformacionDispositivoBTLE y actualizarUltimaMedicionEnPantalla)
         String textoMedicion = String.format(
@@ -798,7 +779,7 @@ public class MainActivity extends AppCompatActivity {
             major, minor, nombreEmisora
         );
         this.laEtiquetaUltimaMedicion.setText(textoMedicion);
-    }
+    } // ()
 
 
 

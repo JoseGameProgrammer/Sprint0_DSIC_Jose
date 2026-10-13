@@ -6,17 +6,17 @@
 ====================================================================================
 TABLE: Medidas
 
-DESCRIPTION: Almacena una fila por cada medicin recibida por el servidor.
+DESCRIPTION: Almacena una fila por cada medición recibida por el servidor.
 El tipo de magnitud se codifica en el campo Tipo_Medicion y el valor medido
-en Valor_Medicion, simplificando el modelo original basado en el estndar iBeacon.
+en Valor_Medicion, simplificando el modelo original basado en el estándar iBeacon.
 
 COLUMNS:
 
 + ID             | INTEGER | NOT NULL | Auto-Increment
 + Fecha          | TEXT    | NOT NULL | (datetime('now','localtime'))
 + ID_Sensor      | INTEGER | NOT NULL | 1
-+ Tipo_Medicion  | TEXT    | NOT NULL | 
-+ Valor_Medicion | INTEGER | NOT NULL | 
++ Tipo_Medicion  | TEXT    | NOT NULL
++ Valor_Medicion | INTEGER | NOT NULL
 
 PRIMARY KEY: ID
 
@@ -41,7 +41,7 @@ CONSTRAINTS:
 
 ## 3. General Rules
 
-- **Programming Language:** PHP 8 for backend components, JavaScript for the frontend.
+- **Programming Language:** SQL (SQLite / dialecto SQLite 3)
 - **Function/Method Headers:** Each function or method header must include its logical design inside a dedicated comment block bounded by dashed lines (`--------------------`).
 - **Code Readability:** Code must be as clear and self-explanatory as possible, requiring minimal to no additional inline comments.
 - **Automated Testing:** Unit/integration test cases must be generated for all critical methods and functions.

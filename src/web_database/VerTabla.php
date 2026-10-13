@@ -7,22 +7,18 @@
    |               BBDD: Tabla Medidas                |
    +--------------------------------------------------+
    | ID: N (Primary Key, AutoIncremental)             |
-   | FechaLectura: Text                               |
-   | Uuid: Text                                       |
-   | Major: N                                         |
-   | Minor: Z                                         |
-   | TxPower: Z                                       |
-   | NombreEmisora: Text                              |
+   | Fecha: Text                                      |
+   | ID_Sensor: N                                     |
+   | Tipo_Medicion: Text                              |
+   | Valor_Medicion: Z                                |
    +--------------------------------------------------+
 
    Medida = (
        id: N,
-       uuid: Text,
-       major: N,
-       minor: Z,
-       txPower: Z,
-       nombreEmisora: Text,
-       fechaLectura: Text
+       fecha: Text,
+       idSensor: N,
+       tipoMedicion: Text,
+       valorMedicion: Z
    )
 
    TablaMedidas = [ Medida ]
@@ -204,16 +200,12 @@ if ( $esConsola ) {
 
   foreach ( $lasMedidas as $unaMedida ) {
 
-    $tipo = intdiv( (int) $unaMedida['major'], 256 );
-
     echo "ID " . str_pad( (string) $unaMedida['id'], 4, ' ', STR_PAD_LEFT )
-         . " | " . str_pad( (string) $unaMedida['fechaLectura'], 19 )
-         . " | " . str_pad( (string) $unaMedida['nombreEmisora'], 13 )
-         . " | major=" . str_pad( (string) $unaMedida['major'], 5 )
-         . " minor=" . str_pad( (string) $unaMedida['minor'], 7 )
-         . " (" . str_pad( nombreDeLaMagnitud( $tipo ), 20 ) . ")"
-         . " tx=" . str_pad( (string) $unaMedida['txPower'], 5 )
-         . " | " . $unaMedida['uuid'] . PHP_EOL;
+         . " | " . str_pad( (string) $unaMedida['fecha'], 19 )
+         . " | Sensor=" . str_pad( (string) $unaMedida['idSensor'], 4 )
+         . " | Tipo=" . str_pad( (string) $unaMedida['tipoMedicion'], 14 )
+         . " | Valor=" . str_pad( (string) $unaMedida['valorMedicion'], 6 )
+         . PHP_EOL;
 
   } // ()
 
@@ -285,43 +277,21 @@ tr:nth-child(even) td { background: #f6f6f6; }   /* zebra, para no perder la fil
   <tr>
     <th>ID</th>
     <th>Fecha</th>
-<th>ID_Sensor</th>
-<th>Tipo_Medicion</th>
-<th>Valor_Medicion</th>
-    <!-- -->
-    <!-- -->
-    <!-- -->
-    <!-- -->
-    <th>Magnitud</th>
-    <th>Muestra</th>
-    <!-- -->
+    <th>ID_Sensor</th>
+    <th>Tipo_Medicion</th>
+    <th>Valor_Medicion</th>
   </tr>
 
 <?php foreach ( $lasMedidas as $unaMedida ) {
-
-  $tipo    = intdiv( (int) $unaMedida['major'], 256 );
-  $muestra = numeroDeMuestra( $unaMedida['major'] );
-
-  // Las clases solo pintan el color; el texto ya viene escrito arriba por nombreDeLaMagnitud().
-  if ( $tipo === 11 ) {
-    $clase = 'tipoCO2';
-  } elseif ( $tipo === 12 ) {
-    $clase = 'tipoTEM';
-  } else {
-    $clase = '';
-  } // ()
-
+  $tipo = $unaMedida['tipoMedicion'];
+  $clase = ($tipo === 'CO2') ? 'tipoCO2' : (($tipo === 'TEMPERATURA') ? 'tipoTEM' : '');
   ?>
   <tr>
     <td><?php echo (int) $unaMedida['id']; ?></td>
-    <td><?php echo htmlspecialchars( $unaMedida['fechaLectura'] ); ?></td>
-    <td><?php echo htmlspecialchars( $unaMedida['nombreEmisora'] ); ?></td>
-    <td><?php echo htmlspecialchars( $unaMedida['uuid'] ); ?></td>
-    <td><?php echo (int) $unaMedida['major']; ?></td>
-    <td><?php echo (int) $unaMedida['minor']; ?></td>
-    <td class="<?php echo $clase; ?>"><?php echo htmlspecialchars( nombreDeLaMagnitud( $tipo ) ); ?></td>
-    <td><?php echo (int) $muestra; ?></td>
-    <td><?php echo (int) $unaMedida['txPower']; ?></td>
+    <td><?php echo htmlspecialchars( $unaMedida['fecha'] ); ?></td>
+    <td><?php echo (int) $unaMedida['idSensor']; ?></td>
+    <td class="<?php echo $clase; ?>"><?php echo htmlspecialchars( $unaMedida['tipoMedicion'] ); ?></td>
+    <td><?php echo (int) $unaMedida['valorMedicion']; ?></td>
   </tr>
 <?php } // () ?>
 

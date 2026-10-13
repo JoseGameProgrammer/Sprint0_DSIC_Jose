@@ -4,7 +4,7 @@ plugins {
 
 android {
     namespace = "com.example.jmmarter.btle_definitivo_jose"
-    sourceSets { getByName("main") { java.srcDir("../../btle_frontend_business_logic") } }
+    sourceSets { getByName("main") { java.srcDir(rootProject.file("../btle_frontend_business_logic")) } }
     compileSdk {
         version = release(36) {
             minorApiLevel = 1

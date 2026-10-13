@@ -6,7 +6,7 @@
 // funcionando y no da ningún error... pero 236 y -11 ya nunca saldrían, y las medidas
 // llegarían sesgadas al móvil. Estas pruebas lo detectan.
 //
-// Compilar y ejecutar:  ver ejecutar_tests.bat
+// Compilar y ejecutar:  ver ejecuta_pruebas.bat
 
 #include "EntornoArduinoFalso.h"
 #include "../HolaMundoIBeacon/Medidor.h"

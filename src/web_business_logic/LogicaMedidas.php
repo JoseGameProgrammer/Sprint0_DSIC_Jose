@@ -5,17 +5,15 @@
 // --------------------------------------------------------------------------------------------------
 //   Medida = (
 //       id: N,
-//       uuid: Text,
-//       major: N,
-//       minor: Z,
-//       txPower: Z,
-//       nombreEmisora: Text,
-//       fechaLectura: Text
+//       fecha: Text,
+//       idSensor: N,
+//       tipoMedicion: Text,
+//       valorMedicion: Z
 //   )
 //
 //   TablaMedidas = [ Medida ]
 //
-//                    ------------- logica/LogicaMedidas.php -------------
+//                    ----- web_business_logic/LogicaMedidas.php -----
 //                    |
 //   uuid: Text, major: N, minor: Z, txPower: Z,
 //   nombreEmisora: Text
@@ -178,8 +176,8 @@ function guardarMedida( $uuid, $major, $minor, $txPower, $nombreEmisora ) {
 //   Se ordena por ID DESC, así que lo primero del array es la medida más reciente.
 //   "cuantasComoMaximo" es el tope: nunca se devuelven más de las pedidas.
 //
-//   Cada elemento devuelto es un array asociativo con las 7 claves del tipo Medida:
-//   id, uuid, major, minor, txPower, nombreEmisora, fechaLectura.
+//   Cada elemento devuelto es un array asociativo con las 5 claves del tipo Medida:
+//   id, fecha, idSensor, tipoMedicion, valorMedicion.
 // -------------------------------------------------------------------------------------------------
 function obtenerMedidas( $cuantasComoMaximo = 100 ) {
   $limite = filter_var( $cuantasComoMaximo, FILTER_VALIDATE_INT );

@@ -86,6 +86,26 @@ var MILISEGUNDOS_REFRESCO = 3000;
 var idDelRefresco = null;
 
 // -------------------------------------------------------------------------------------------------
+// DISEÑO: cuantasComoMaximo: N --> obtenerMedidas() <-- [ Medida ]
+// Qué hace: Interfaz proxy cliente idéntica al backend para obtener las medidas.
+// -------------------------------------------------------------------------------------------------
+function obtenerMedidas( cb ) {
+  return obtenerMedidasFake( cb );
+}
+
+// -------------------------------------------------------------------------------------------------
+// DISEÑO: uuid: Text, major: N, minor: Z, txPower: Z, nombreEmisora: Text --> guardarMedida() --> B
+// Qué hace: Interfaz proxy cliente idéntica al backend para guardar una medida.
+// -------------------------------------------------------------------------------------------------
+function guardarMedida( uuid, major, minor, txPower, nombreEmisora, cb ) {
+  // Proxy de cliente para guardar medida hacia el backend
+  if ( typeof cb === 'function' ) {
+    cb( true );
+  }
+  return true;
+}
+
+// -------------------------------------------------------------------------------------------------
 // --> obtenerMedidasFake() <--
 // -------------------------------------------------------------------------------------------------
 //   cb: Callback --> obtenerMedidasFake() <--
@@ -312,12 +332,12 @@ function pintarLasMedidasAnteriores( lasMedidas ) {
 // --------------------------------------------------
 // La tabla tiene 5 columnas, y aquí se meten 5 celdas, en este orden:
 //
-//     id  ->  minor  ->  uuid  ->  nombreEmisora  ->  fechaLectura
-//    "ID"  "Medición"  "Uuid"  "Nombre Emisora"  "Fecha y Hora"
+//     id  ->  fecha  ->  idSensor  ->  tipoMedicion  ->  valorMedicion
+//    "ID"    "Fecha"   "ID Sensor"        "Tipo"            "Valor"
 //
-// Si se cambiasen de orden, el nombreEmisora aparecería bajo la columna ID. Ojo con esto.
+// Si se cambiasen de orden, los valores no coincidirían con sus cabeceras. Ojo con esto.
 //
-// OJO CON LOS NÚMEROS: id y minor son números (N y Z) en el diseño, no textos. Se pasan
+// OJO CON LOS NÚMEROS: id, idSensor y valorMedicion son números en el diseño, no textos. Se pasan
 // tal cual al textContent, que los convierte a texto solo al pintarlos, que es
 // exactamente lo que hace un <td>: guarda texto.
 // -------------------------------------------------------------------------------------------------

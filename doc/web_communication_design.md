@@ -3,19 +3,16 @@
 ## 1. Component Design
 
 ### 1.1 Endpoints
-Los endpoints traducen HTTP a llamadas de la lgica. No contienen SQL.
+Los endpoints traducen HTTP a llamadas de la lógica. No contienen SQL.
 
 ```text
-uuid (opcional): Text, major: N, minor: Z, txPower (opcional): Z, nombreEmisora (opcional): Text --> guardarMedida() --> B        (escribe)
-
+uuid: Text, major: N, minor: Z, txPower: Z, nombreEmisora: Text --> guardarMedida() --> B
 cuantasComoMaximo: N --> obtenerMedidas() <-- [ Medida ]
-nombre: Text, password: Text --> hacerLogin() --> VoF
-usuario: Text --> diHola() --> ( nombre: Text, saludo: Text )
 ```
 
 ## 2. Design Clarifications
 
-- La separacin entre lgica y transporte es estricta. Los endpoints se limitan a traducir de la peticin web a tipos abstractos.
+- La separación entre lógica y transporte es estricta. Los endpoints se limitan a traducir de la petición web a tipos abstractos.
 - Los endpoints no llevan SQL.
 
 ## 3. General Rules

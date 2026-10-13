@@ -36,9 +36,9 @@ Caracteristica    = ( uuidCaracteristica: [Z]_16, laCaracteristica )
 ServicioEnEmisora = ( uuidServicio: [Z]_16, elServicio,
                       lasCaracteristicas: [ Caracteristica ] )
 
-CallbackConexionEstablecida = ( connHandle: N ) -->
-CallbackConexionTerminada   = ( connHandle: N, reason: N ) -->
-CallbackCaracteristicaEscrita = ( connHandle: N, chr, data: [Z], len: N ) -->
+CallbackConexionEstablecida = ( connHandle: N )
+CallbackConexionTerminada   = ( connHandle: N, reason: N )
+CallbackCaracteristicaEscrita = ( connHandle: N, chr: Object, data: [Z], len: N )
 ```
 
 ### 1.4 Estructura global del programa
@@ -69,10 +69,10 @@ Encadenamiento de `loop()`:
 ```text
         --> loop() -->
                 elMedidor.medirCO2() <-- Z
-                elPublicador.publicarCO2( valor: Z, cont: N, t: N ) -->
+                valor: Z, cont: N, t: N --> elPublicador.publicarCO2() -->
                 elMedidor.medirTemperatura() <-- Z
-                elPublicador.publicarTemperatura( valor: Z, cont: N, t: N ) -->
-                esperar( t: N ) -->
+                valor: Z, cont: N, t: N --> elPublicador.publicarTemperatura() -->
+                t: N --> esperar() -->
                 elPublicador.laEmisora.detenerAnuncio() -->
 ```
 
@@ -353,7 +353,7 @@ El campo `minor` de 2 bytes transporta el valor medido, **con signo** (complemen
 ---
 
 ## 3. General Rules
-- **Programming Language:** Java 11
+- **Programming Language:** C++ (Arduino / Adafruit Bluefruit nRF52)
 
 - **Lenguaje de programación objetivo:** C++ para Arduino (nRF52840, Adafruit Bluefruit nRF52,
   framework Arduino con la biblioteca `Bluefruit`). Los ficheros de clase usan extensión `.h` y el

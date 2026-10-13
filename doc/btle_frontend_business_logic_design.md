@@ -2,8 +2,8 @@
 
 ## 1. Component Design
 
-### 1.1 Lgica del Cliente (Proxy)
-El cliente mvil expone llamadas equivalentes a la lgica de servidor para que la GUI las consuma sin preocuparse del transporte HTTP ni del servicio de Bluetooth interno que hace el POST.
+### 1.1 Lógica del Cliente (Proxy)
+El cliente móvil expone llamadas equivalentes a la lógica de servidor para que la GUI las consuma sin preocuparse del transporte HTTP ni del servicio de Bluetooth interno que hace el POST.
 
 ```text
 uuid: Text, major: N, minor: Z, txPower: Z, nombreEmisora: Text --> guardarMedida() --> B
@@ -11,8 +11,8 @@ uuid: Text, major: N, minor: Z, txPower: Z, nombreEmisora: Text --> guardarMedid
 
 ## 2. Design Clarifications
 
-- Esta capa de lgica encapsula la invocacin del Servicio HTTP (PeticionarioREST). 
-- La GUI (`MainActivity`) llama a esta lgica sin tener dependencias directas de la red.
+- Esta capa de lógica encapsula la invocación del Servicio HTTP (PeticionarioREST). 
+- La GUI (`MainActivity`) llama a esta lógica sin tener dependencias directas de la red.
 
 ## 3. General Rules
 
