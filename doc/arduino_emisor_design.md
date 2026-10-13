@@ -359,7 +359,7 @@ El campo `minor` de 2 bytes transporta el valor medido, **con signo** (complemen
   framework Arduino con la biblioteca `Bluefruit`). Los ficheros de clase usan extensión `.h` y el
   programa principal `.ino`. No se usa `malloc`, ni punteros inteligentes, ni excepciones.
 
-- **Encabezados de funciones y métodos:** cada declaración debe llevar inmediatamente encima su
+- **Function/Method Headers:** cada declaración debe llevar inmediatamente encima su
   diseño lógico dentro de un bloque de comentario delimitado por líneas discontinuas
   (`--------------------`), con el formato `entradas --> nombre() --> salidas`. Ese bloque explica
   qué hace la función ("Qué hace"), no cómo está implementada.
@@ -371,14 +371,14 @@ El campo `minor` de 2 bytes transporta el valor medido, **con signo** (complemen
   // ------------------------------------------------------------------------------------
   ```
 
-- **Legibilidad del código:** el código debe ser lo más claro y autoexplicativo posible, de modo
+- **Code Readability:** el código debe ser lo más claro y autoexplicativo posible, de modo
   que prácticamente no requiera comentarios adicionales dentro del cuerpo. Solo se comentan
   aquello que no se deduce de la lectura: el porqué de una decisión, el sentido de un número
   mágico y el aviso de una trampa. Los números mágicos que sí aparecen en el anuncio (el
   prefijo de Apple, el identificador de fabricante) se documentan en la cabecera de la función,
   no línea a línea.
 
-- **Pruebas automatizadas:** hay que generar casos de prueba para todas las funciones y métodos
+- **Automated Testing:** hay que generar casos de prueba para todas las funciones y métodos
   críticos. En este componente los críticos son:
 
   - `Publicador::publicarCO2()` y `publicarTemperatura()`: comprobar que `major` se calcula como

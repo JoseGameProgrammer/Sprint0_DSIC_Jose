@@ -17,7 +17,7 @@
 //       "medidas": [ Medida ]
 //   }
 //
-//   donde Medida = ( id: N, fecha: Text, idSensor: N,
+//   donde Medida = ( fecha: Text, idSensor: N,
 //                    tipoMedicion: Text, valorMedicion: Z )
 //
 // --------------------------------------------------------------------------------------------------
@@ -132,7 +132,7 @@ error_log( 'ObtenerMedidas.php: se piden ' . $cuantasComoMaximo . ' medidas como
 // 3) LLAMADA A LA LÓGICA Y GENERACIÓN DEL JSON DE SALIDA
 // -------------------------------------------------------------------------------------------------
 // La única llamada a la lógica de este endpoint. Devuelve un array de Medida,
-// cada una con sus 5 claves (id, fecha, idSensor, tipoMedicion, valorMedicion),
+// cada una con sus 4 claves (fecha, idSensor, tipoMedicion, valorMedicion),
 // ya ordenadas de la más reciente a la más antigua.
 $listaMedidas = obtenerMedidas( $cuantasComoMaximo );
 

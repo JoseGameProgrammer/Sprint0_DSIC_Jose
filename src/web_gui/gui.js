@@ -70,22 +70,21 @@ function celdaDe( unValor, elNumeroDeColumnas ) {
 
 // -------------------------------------------------------------------------------------------------
 // DISEÑO: unTexto: Text --> filaDe() --> [ Text ]
-// Qué hace: devuelve un elemento <tr> con una sola celda que abarca las 5 columnas.
+// Qué hace: devuelve un elemento <tr> con una sola celda que abarca las 4 columnas.
 // -------------------------------------------------------------------------------------------------
 function filaDe( unTexto ) {
   var laFila = document.createElement( 'tr' );
-  laFila.appendChild( celdaDe( unTexto, 5 ) );
+  laFila.appendChild( celdaDe( unTexto, 4 ) );
   return laFila;
 } // ()
 
 // -------------------------------------------------------------------------------------------------
 // DISEÑO: unaMedida: Medida --> filaDeMedida() --> [ Text ]
-// Qué hace: construye un <tr> con las 5 celdas de una Medida en el orden exacto de columnas.
+// Qué hace: construye un <tr> con las 4 celdas de una Medida en el orden exacto de columnas.
 // -------------------------------------------------------------------------------------------------
 function filaDeMedida( unaMedida ) {
   var laFila = document.createElement( 'tr' );
 
-  laFila.appendChild( celdaDe( unaMedida.id ) );
   laFila.appendChild( celdaDe( unaMedida.fecha ) );
   laFila.appendChild( celdaDe( unaMedida.idSensor ) );
   laFila.appendChild( celdaDe( unaMedida.tipoMedicion ) );

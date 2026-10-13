@@ -187,7 +187,7 @@ declarada en 1.2 y delega el envío de datos exclusivamente en `LogicaCliente` (
   con el SDK de AndroidX. La interfaz se declara en XML (`activity_main.xml`). No se usa ninguna
   biblioteca de terceros más allá de AndroidX AppCompat, Material y JUnit.
 
-- **Encabezados de funciones y métodos:** cada declaración debe llevar inmediatamente encima su
+- **Function/Method Headers:** cada declaración debe llevar inmediatamente encima su
   diseño lógico dentro de un bloque de comentario delimitado por líneas discontinuas
   (`--------------------`), con el formato `entradas --> nombre() --> salidas`, seguido de una línea
   "Qué hace". Ese bloque describe el comportamiento observable, no la implementación.
@@ -199,13 +199,13 @@ declarada en 1.2 y delega el envío de datos exclusivamente en `LogicaCliente` (
   // ------------------------------------------------------------------------------------
   ```
 
-- **Legibilidad del código:** el código debe ser lo más claro y autoexplicativo posible, de modo
+- **Code Readability:** el código debe ser lo más claro y autoexplicativo posible, de modo
   que prácticamente no requiera comentarios adicionales dentro del cuerpo. Se comentan solo
   tres cosas: el porqué de una decisión no deducible, el sentido de un número mágico y los
   bugs ya corregidos (con su síntoma, para que no se reintroduzcan). Los nombres de los métodos
   van en español y son verbos en imperativo.
 
-- **Pruebas automatizadas:** hay que generar casos de prueba para todas las funciones y métodos
+- **Automated Testing:** hay que generar casos de prueba para todas las funciones y métodos
   críticos. Los críticos de este componente son:
 
   - `TramaIBeacon()`: construir una trama iBeacon válida de 30 bytes y comprobar que `getUUID()`,

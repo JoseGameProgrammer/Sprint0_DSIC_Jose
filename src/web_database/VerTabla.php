@@ -6,15 +6,13 @@
    +--------------------------------------------------+
    |               BBDD: Tabla Medidas                |
    +--------------------------------------------------+
-   | ID: N (Primary Key, AutoIncremental)             |
-   | Fecha: Text                                      |
-   | ID_Sensor: N                                     |
+   | Fecha: Text (Primary Key compuesta)              |
+   | ID_Sensor: N (Primary Key compuesta)             |
    | Tipo_Medicion: Text                              |
    | Valor_Medicion: Z                                |
    +--------------------------------------------------+
 
    Medida = (
-       id: N,
        fecha: Text,
        idSensor: N,
        tipoMedicion: Text,
@@ -200,8 +198,7 @@ if ( $esConsola ) {
 
   foreach ( $lasMedidas as $unaMedida ) {
 
-    echo "ID " . str_pad( (string) $unaMedida['id'], 4, ' ', STR_PAD_LEFT )
-         . " | " . str_pad( (string) $unaMedida['fecha'], 19 )
+    echo str_pad( (string) $unaMedida['fecha'], 19 )
          . " | Sensor=" . str_pad( (string) $unaMedida['idSensor'], 4 )
          . " | Tipo=" . str_pad( (string) $unaMedida['tipoMedicion'], 14 )
          . " | Valor=" . str_pad( (string) $unaMedida['valorMedicion'], 6 )
@@ -212,7 +209,7 @@ if ( $esConsola ) {
   echo str_repeat( '=', 110 ) . PHP_EOL;
 
   if ( count( $lasMedidas ) > 0 ) {
-    echo "La última de arriba es la más reciente: obtenerMedidas() trae ORDER BY ID DESC."
+    echo "La última de arriba es la más reciente: obtenerMedidas() trae ORDER BY Fecha DESC, rowid DESC."
          . PHP_EOL;
   } // ()
 
@@ -275,7 +272,6 @@ tr:nth-child(even) td { background: #f6f6f6; }   /* zebra, para no perder la fil
 <table>
 
   <tr>
-    <th>ID</th>
     <th>Fecha</th>
     <th>ID_Sensor</th>
     <th>Tipo_Medicion</th>
@@ -287,7 +283,6 @@ tr:nth-child(even) td { background: #f6f6f6; }   /* zebra, para no perder la fil
   $clase = ($tipo === 'CO2') ? 'tipoCO2' : (($tipo === 'TEMPERATURA') ? 'tipoTEM' : '');
   ?>
   <tr>
-    <td><?php echo (int) $unaMedida['id']; ?></td>
     <td><?php echo htmlspecialchars( $unaMedida['fecha'] ); ?></td>
     <td><?php echo (int) $unaMedida['idSensor']; ?></td>
     <td class="<?php echo $clase; ?>"><?php echo htmlspecialchars( $unaMedida['tipoMedicion'] ); ?></td>

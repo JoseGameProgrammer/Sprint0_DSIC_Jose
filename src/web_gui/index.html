@@ -6,21 +6,20 @@
 
  TIPO DE DATO QUE SE PINTA EN LAS TABLAS (en nuestra notación oficial):
 
-     Medida = ( id: N,
-                fecha: Text,
+     Medida = ( fecha: Text,
                 idSensor: N,
                 tipoMedicion: Text,
                 valorMedicion: Z )
 
- Los 5 campos de Medida se pintan en las tablas:
-     - id            -> columna "ID"            (tipo N, sin signo)
-     - fecha         -> columna "Fecha"         (tipo Text, formato "AAAA-MM-DD HH:MM:SS")
-     - idSensor      -> columna "ID Sensor"     (tipo N, sin signo)
+ Los 4 campos de Medida se pintan en las tablas:
+     - fecha         -> columna "Fecha"         (tipo Text, formato "AAAA-MM-DD HH:MM:SS", clave primaria compuesta)
+     - idSensor      -> columna "ID Sensor"     (tipo N, sin signo, clave primaria compuesta)
      - tipoMedicion  -> columna "Tipo"          (tipo Text)
      - valorMedicion -> columna "Valor"         (tipo Z, con signo)
 
-  El diseño de las tablas muestra exactamente las 5 columnas de la tabla Medidas
-  definida en web_database_design.md: ID, Fecha, ID Sensor, Tipo y Valor.
+  El diseño de las tablas muestra exactamente las 4 columnas de la tabla Medidas
+  definida en web_database_design.md: Fecha, ID Sensor, Tipo y Valor.
+  Se prescinde de ID autoincremental en favor de la clave primaria compuesta (ID_Sensor, Fecha).
   El campo major y txPower se procesan en el backend para clasificar la magnitud (CO2/TEMPERATURA)
   y asignar el valor con signo correspondiente.
 
@@ -204,7 +203,6 @@
     <table class="tabla-ultima-medida">
       <thead>
         <tr>
-          <th>ID</th>
           <th>Fecha</th>
           <th>ID Sensor</th>
           <th>Tipo</th>
@@ -213,11 +211,9 @@
       </thead>
 
       <!-- Fila de ejemplo, fija, para poder revisar el diseño sin servidor.
-           LogicaFake.js la sustituye por la medida real en cuanto refresca.
-           OJO: la columna "Medición" pinta el campo minor, según el prompt 5. -->
+           gui.js la sustituye por la medida real en cuanto refresca. -->
       <tbody id="tbody-ultima-medida">
         <tr>
-          <td>5</td>
           <td>2026-09-28 20:45:08</td>
           <td>1</td>
           <td>CO2</td>
@@ -238,7 +234,6 @@
     <table class="tabla-medidas-anteriores">
       <thead>
         <tr>
-          <th>ID</th>
           <th>Fecha</th>
           <th>ID Sensor</th>
           <th>Tipo</th>
@@ -249,28 +244,24 @@
       <!-- Filas de ejemplo, fijas, para poder revisar el diseño sin servidor. -->
       <tbody id="tbody-medidas-anteriores">
         <tr>
-          <td>4</td>
           <td>2026-09-28 20:45:08</td>
           <td>1</td>
           <td>CO2</td>
           <td>234</td>
         </tr>
         <tr>
-          <td>3</td>
           <td>2026-09-28 19:45:08</td>
           <td>1</td>
           <td>CO2</td>
           <td>233</td>
         </tr>
         <tr>
-          <td>2</td>
           <td>2026-09-28 18:45:08</td>
           <td>1</td>
           <td>CO2</td>
           <td>232</td>
         </tr>
         <tr>
-          <td>1</td>
           <td>2026-09-28 17:45:08</td>
           <td>1</td>
           <td>CO2</td>

@@ -8,17 +8,17 @@ TABLE: Medidas
 
 DESCRIPTION: Almacena una fila por cada medición recibida por el servidor.
 El tipo de magnitud se codifica en el campo Tipo_Medicion y el valor medido
-en Valor_Medicion, simplificando el modelo original basado en el estándar iBeacon.
+en Valor_Medicion. Se prescinde de ID autoincremental en favor de una clave
+primaria compuesta natural formada por (ID_Sensor, Fecha).
 
 COLUMNS:
 
-+ ID             | INTEGER | NOT NULL | Auto-Increment
 + Fecha          | TEXT    | NOT NULL | (datetime('now','localtime'))
 + ID_Sensor      | INTEGER | NOT NULL | 1
 + Tipo_Medicion  | TEXT    | NOT NULL
 + Valor_Medicion | INTEGER | NOT NULL
 
-PRIMARY KEY: ID
+PRIMARY KEY: ID_Sensor, Fecha
 
 FOREIGN KEYS:
 
@@ -26,7 +26,7 @@ FOREIGN KEYS:
 
 CONSTRAINTS:
 
-+ ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL
++ PRIMARY KEY (ID_Sensor, Fecha)
 + Fecha TEXT NOT NULL DEFAULT (datetime('now','localtime'))
 + ID_Sensor INTEGER NOT NULL
 + Tipo_Medicion TEXT NOT NULL

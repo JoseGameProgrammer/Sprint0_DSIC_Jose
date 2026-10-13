@@ -12,7 +12,7 @@ Ficheros: `index.html`, `gui.js`, `testUX.js`
 ### 1.1 Elementos de la Interfaz
 La vista HTML contiene dos secciones principales:
 1. **Tarjeta de última medición:** Muestra el valor más reciente de la magnitud y su timestamp.
-2. **Tabla de histórico:** Listado tabular con las columnas `ID`, `Fecha`, `ID Sensor`, `Tipo Medición` y `Valor Medición`.
+2. **Tabla de histórico:** Listado tabular con las columnas `Fecha`, `ID Sensor`, `Tipo Medición` y `Valor Medición`.
 
 ### 1.2 Funciones de Renderizado y Control de UI
 

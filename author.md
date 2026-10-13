@@ -1,3 +1,5 @@
-# Autor
+# Author / Autor
 
-- **Nombre:** Jose Manuel Martin Terre
+Jose Manuel Martin Terre
+
+- **Nombre / Name:** Jose Manuel Martin Terre

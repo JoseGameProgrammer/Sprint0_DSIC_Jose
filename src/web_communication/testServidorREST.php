@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------------------------------
 //   Arranca un servidor HTTP embebido para validar de forma integral:
 //   - POST GuardarMedida.php con JSON válido (código 200 y error: 0).
-//   - GET ObtenerMedidas.php con cuantasComoMaximo (código 200 y array de 5 campos).
+//   - GET ObtenerMedidas.php con cuantasComoMaximo (código 200 y array de 4 campos).
 //   - Rechazo de peticiones inválidas (error: 1).
 //   - Desacoplamiento estricto: cero sentencias SQL en los endpoints de comunicación.
 // ==================================================================================================
@@ -70,8 +70,8 @@ try {
 
     if ( $medidasOk && count( $jsonGet['medidas'] ) > 0 ) {
         $m = $jsonGet['medidas'][0];
-        $camposValidos = isset($m['id']) && isset($m['fecha']) && isset($m['idSensor']) && isset($m['tipoMedicion']) && isset($m['valorMedicion']);
-        verificar( $camposValidos, "las medidas devueltas contienen los 5 campos canónicos (id, fecha, idSensor, tipoMedicion, valorMedicion)" );
+        $camposValidos = !isset($m['id']) && isset($m['fecha']) && isset($m['idSensor']) && isset($m['tipoMedicion']) && isset($m['valorMedicion']);
+        verificar( $camposValidos, "las medidas devueltas contienen los 4 campos canónicos (fecha, idSensor, tipoMedicion, valorMedicion, sin ID)" );
     }
 
     echo "\n--> 3. Rechazo de peticiones erróneas (error: 1)\n";

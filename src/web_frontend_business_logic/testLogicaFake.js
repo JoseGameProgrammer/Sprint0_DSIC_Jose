@@ -5,7 +5,7 @@
 //   - guardarMedida()
 //   - obtenerMedidas()
 //   - obtenerMedidasFake()
-//   - Estructura canónica de 5 campos de la entidad Medida (id, fecha, idSensor, tipoMedicion, valorMedicion).
+//   - Estructura canónica de 4 campos de la entidad Medida (fecha, idSensor, tipoMedicion, valorMedicion).
 // ==================================================================================================
 
 function verificarLogicaFake() {
@@ -39,22 +39,21 @@ function verificarLogicaFake() {
   test( resultadoGuardar === true, "guardarMedida() devuelve true como confirmación lógica" );
   test( callbackInvocado === true, "guardarMedida() ejecuta su callback notificando éxito" );
 
-  // 3. Verificación de contrato y paridad del modelo Medida (5 campos)
+  // 3. Verificación de contrato y paridad del modelo Medida (4 campos)
   var medidaMuestra = {
-    id: 1,
     fecha: '2026-10-13 12:00:00',
     idSensor: 1,
     tipoMedicion: 'CO2',
     valorMedicion: 235
   };
-  var camposCanónicos = ['id', 'fecha', 'idSensor', 'tipoMedicion', 'valorMedicion'];
-  var camposCorrectos = true;
+  var camposCanónicos = ['fecha', 'idSensor', 'tipoMedicion', 'valorMedicion'];
+  var camposCorrectos = !medidaMuestra.hasOwnProperty('id');
   for ( var i = 0; i < camposCanónicos.length; i++ ) {
     if ( !medidaMuestra.hasOwnProperty( camposCanónicos[i] ) ) {
       camposCorrectos = false;
     }
   }
-  test( camposCorrectos, "el modelo Medida implementa exclusivamente los 5 campos normalizados (id, fecha, idSensor, tipoMedicion, valorMedicion)" );
+  test( camposCorrectos, "el modelo Medida implementa exclusivamente los 4 campos normalizados (fecha, idSensor, tipoMedicion, valorMedicion, sin ID)" );
 
   // 4. Verificación de que LogicaFake no manipula el DOM (aislamiento y desacoplamiento)
   var sinAccesoDOM = typeof RUTA_SERVICIO_MEDIDAS === 'string' && RUTA_SERVICIO_MEDIDAS.indexOf('ObtenerMedidas.php') !== -1;

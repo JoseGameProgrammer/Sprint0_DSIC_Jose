@@ -2,9 +2,9 @@
 // ==================================================================================================
 // DISEÑO LÓGICO: test automatizado de la lógica de negocio (web_business_logic/testLogicaMedidas.php)
 // --------------------------------------------------------------------------------------------------
-//   Verifica las funciones guardarMedida() y obtenerMedidas() con el modelo canónico de 5 campos,
+//   Verifica las funciones guardarMedida() y obtenerMedidas() con el modelo canónico de 4 campos,
 //   comprobando decodificación de major a Tipo_Medicion, valores con signo (minor), validación
-//   de tipos y comportamiento del límite de consulta.
+//   de tipos, ausencia de campo artificial ID y comportamiento del límite de consulta.
 // ==================================================================================================
 
 require_once __DIR__ . '/LogicaMedidas.php';
@@ -31,18 +31,18 @@ echo "--> 1. Prueba de guardarMedida() con magnitud CO2\n";
 $resCO2 = guardarMedida( 'EPSG-GTI-PROY-3A', 2817, 235, -53, 'GTI-Jose' );
 verificar( $resCO2 === true, "guardarMedida() para CO2 (major 2817, minor 235) devuelve true" );
 
-echo "\n--> 2. Prueba de obtenerMedidas() y verificación de las 5 claves del modelo\n";
+echo "\n--> 2. Prueba de obtenerMedidas() y verificación de las 4 claves del modelo\n";
 $medidas = obtenerMedidas( 5 );
 verificar( is_array( $medidas ) && count( $medidas ) > 0, "obtenerMedidas() devuelve un array con datos" );
 
 $primera = isset( $medidas[0] ) ? $medidas[0] : null;
 $clavesValidas = $primera !== null
-    && array_key_exists( 'id', $primera )
+    && ! array_key_exists( 'id', $primera )
     && array_key_exists( 'fecha', $primera )
     && array_key_exists( 'idSensor', $primera )
     && array_key_exists( 'tipoMedicion', $primera )
     && array_key_exists( 'valorMedicion', $primera );
-verificar( $clavesValidas, "el registro obtenido contiene exactamente los 5 campos del diseño" );
+verificar( $clavesValidas, "el registro obtenido contiene exactamente los 4 campos del diseño (fecha, idSensor, tipoMedicion, valorMedicion, sin ID)" );
 verificar( $primera && $primera['tipoMedicion'] === 'CO2' && $primera['valorMedicion'] === 235, "la medida más reciente decodifica 'CO2' y valor 235" );
 
 echo "\n--> 3. Prueba de guardarMedida() con magnitud TEMPERATURA y valor negativo con signo\n";
@@ -52,6 +52,7 @@ verificar( $resTemp === true, "guardarMedida() para TEMPERATURA (major 3073, min
 $medidasTemp = obtenerMedidas( 1 );
 $ultimaTemp = isset( $medidasTemp[0] ) ? $medidasTemp[0] : null;
 verificar( $ultimaTemp && $ultimaTemp['tipoMedicion'] === 'TEMPERATURA' && $ultimaTemp['valorMedicion'] === -13, "temperatura almacenada conserva signo negativo (-13)" );
+verificar( $ultimaTemp && (int)$ultimaTemp['idSensor'] === 2, "sensor de temperatura asigna ID_Sensor = 2 correspondiente a su sensor físico" );
 
 echo "\n--> 4. Pruebas de validación de entradas inválidas\n";
 $resInvalido = guardarMedida( 'EPSG-GTI-PROY-3A', 'no_es_entero', 235, -53, 'GTI-Jose' );

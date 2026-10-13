@@ -2,8 +2,9 @@
 // ==================================================================================================
 // DISEÑO LÓGICO: test automatizado de la base de datos (web_database/testBD.php)
 // --------------------------------------------------------------------------------------------------
-//   Verifica la creación del esquema SQLite, integridad estructural de la tabla Medidas,
-//   las 5 columnas relacionales, e inserción/lectura/borrado de registros de prueba.
+//   Verifica la creación del esquema SQLite con clave primaria compuesta (ID_Sensor, Fecha),
+//   integridad estructural de la tabla Medidas (sin columna ID), las 4 columnas relacionales,
+//   e inserción/lectura/borrado de registros de prueba.
 // ==================================================================================================
 
 $rutaSQL = __DIR__ . '/crearBD.sql';
@@ -31,7 +32,7 @@ try {
 
     $sql = file_get_contents( $rutaSQL );
     $pdo->exec( $sql );
-    echo "    OK   ejecutado crearBD.sql (CREATE TABLE IF NOT EXISTS Medidas)\n";
+    echo "    OK   ejecutado crearBD.sql (CREATE TABLE IF NOT EXISTS Medidas con PRIMARY KEY (ID_Sensor, Fecha))\n";
 
     $stmtTabla = $pdo->query( "SELECT name FROM sqlite_master WHERE type='table' AND name='Medidas'" );
     $tablaExiste = $stmtTabla->fetch();
@@ -41,52 +42,85 @@ try {
     }
     echo "    OK   la tabla 'Medidas' existe\n\n";
 
-    echo "--> 2. Inserto un registro de prueba\n";
+    echo "--> 2. Inserto un registro de prueba con clave primaria compuesta\n";
+    $fechaPrueba = '2099-01-01 12:00:00';
+    $idSensorPrueba = 99;
+    $tipoPrueba = 'TEST_VERIFICACION';
+    $valorPrueba = 777;
+
     $sentenciaInsert = $pdo->prepare(
         "INSERT INTO Medidas (Fecha, ID_Sensor, Tipo_Medicion, Valor_Medicion)
-         VALUES (datetime('now','localtime'), :idSensor, :tipo, :valor)"
+         VALUES (:fecha, :idSensor, :tipo, :valor)"
     );
     $sentenciaInsert->execute( array(
-        ':idSensor' => 99,
-        ':tipo'     => 'TEST_VERIFICACION',
-        ':valor'    => 777
+        ':fecha'    => $fechaPrueba,
+        ':idSensor' => $idSensorPrueba,
+        ':tipo'     => $tipoPrueba,
+        ':valor'    => $valorPrueba
     ) );
-    $idInsertado = (int) $pdo->lastInsertId();
-    if ( $idInsertado <= 0 ) {
-        echo "    FALLO: no se pudo obtener el ID autoincremental insertado\n";
-        exit( 1 );
-    }
-    echo "    OK   se ha insertado el registro y se le ha dado el ID $idInsertado\n\n";
+    echo "    OK   se ha insertado el registro con clave (ID_Sensor=$idSensorPrueba, Fecha='$fechaPrueba')\n\n";
 
-    echo "--> 3. Leo el registro que acabo de insertar\n";
-    $sentenciaSelect = $pdo->prepare( "SELECT * FROM Medidas WHERE ID = :id" );
-    $sentenciaSelect->execute( array( ':id' => $idInsertado ) );
+    echo "--> 3. Leo el registro que acabo de insertar mediante su clave compuesta\n";
+    $sentenciaSelect = $pdo->prepare( "SELECT * FROM Medidas WHERE ID_Sensor = :idSensor AND Fecha = :fecha" );
+    $sentenciaSelect->execute( array(
+        ':idSensor' => $idSensorPrueba,
+        ':fecha'    => $fechaPrueba
+    ) );
     $registro = $sentenciaSelect->fetch();
 
     if ( ! $registro ) {
         echo "    FALLO: la consulta SELECT no devolvió el registro insertado\n";
         exit( 1 );
     }
-    echo "    OK   la consulta SELECT ha devuelto el registro $idInsertado\n";
+    echo "    OK   la consulta SELECT ha devuelto el registro\n";
 
-    $columnasEsperadas = array( 'ID', 'Fecha', 'ID_Sensor', 'Tipo_Medicion', 'Valor_Medicion' );
+    $columnasEsperadas = array( 'Fecha', 'ID_Sensor', 'Tipo_Medicion', 'Valor_Medicion' );
     foreach ( $columnasEsperadas as $col ) {
         if ( ! array_key_exists( $col, $registro ) ) {
             echo "    FALLO: falta la columna '$col' en el registro\n";
             exit( 1 );
         }
     }
-    echo "    OK   las 5 columnas se llaman exactamente como en el diseño (ID, Fecha, ID_Sensor, Tipo_Medicion, Valor_Medicion)\n";
+    if ( array_key_exists( 'ID', $registro ) ) {
+        echo "    FALLO: la columna obsoleta 'ID' sigue existiendo en el registro\n";
+        exit( 1 );
+    }
+    echo "    OK   las 4 columnas se llaman exactamente como en el diseño (Fecha, ID_Sensor, Tipo_Medicion, Valor_Medicion)\n";
 
-    if ( (int) $registro['ID_Sensor'] !== 99 || $registro['Tipo_Medicion'] !== 'TEST_VERIFICACION' || (int) $registro['Valor_Medicion'] !== 777 ) {
+    if ( (int) $registro['ID_Sensor'] !== $idSensorPrueba || $registro['Tipo_Medicion'] !== $tipoPrueba || (int) $registro['Valor_Medicion'] !== $valorPrueba ) {
         echo "    FALLO: los datos leídos no coinciden con los insertados\n";
         exit( 1 );
     }
     echo "    OK   el registro leído coincide con lo que se insertó\n\n";
 
-    echo "--> 4. Borro el registro de prueba\n";
-    $sentenciaDelete = $pdo->prepare( "DELETE FROM Medidas WHERE ID = :id" );
-    $sentenciaDelete->execute( array( ':id' => $idInsertado ) );
+    echo "--> 4. Verifico restricción de clave primaria duplicada\n";
+    $claveDuplicadaRechazada = false;
+    try {
+        $sentenciaDuplicada = $pdo->prepare(
+            "INSERT INTO Medidas (Fecha, ID_Sensor, Tipo_Medicion, Valor_Medicion)
+             VALUES (:fecha, :idSensor, :tipo, :valor)"
+        );
+        $sentenciaDuplicada->execute( array(
+            ':fecha'    => $fechaPrueba,
+            ':idSensor' => $idSensorPrueba,
+            ':tipo'     => 'DUPLICADO',
+            ':valor'    => 999
+        ) );
+    } catch ( PDOException $ex ) {
+        $claveDuplicadaRechazada = true;
+    }
+    if ( ! $claveDuplicadaRechazada ) {
+        echo "    FALLO: la clave primaria compuesta no rechazó la inserción duplicada\n";
+        exit( 1 );
+    }
+    echo "    OK   la clave primaria compuesta (ID_Sensor, Fecha) rechaza correctamente duplicados\n\n";
+
+    echo "--> 5. Borro el registro de prueba\n";
+    $sentenciaDelete = $pdo->prepare( "DELETE FROM Medidas WHERE ID_Sensor = :idSensor AND Fecha = :fecha" );
+    $sentenciaDelete->execute( array(
+        ':idSensor' => $idSensorPrueba,
+        ':fecha'    => $fechaPrueba
+    ) );
     echo "    OK   se ha borrado el registro\n\n";
 
     echo "======================================================================\n";

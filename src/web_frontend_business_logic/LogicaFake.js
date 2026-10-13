@@ -14,7 +14,6 @@
 //               -----------------------------------------------------------
 //
 //   Medida = (
-//       id: N,
 //       fecha: Text,
 //       idSensor: N,
 //       tipoMedicion: Text,

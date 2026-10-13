@@ -4,7 +4,6 @@
 // DISEÑO LÓGICO: capa de lógica del negocio de las medidas
 // --------------------------------------------------------------------------------------------------
 //   Medida = (
-//       id: N,
 //       fecha: Text,
 //       idSensor: N,
 //       tipoMedicion: Text,
@@ -123,8 +122,9 @@ function conectarBBDD() {
 //   un booleano: true si se ha guardado, false si los datos no eran válidos o si
 //   la base de datos ha rechazado la inserción.
 //
-//   OJO: aquí NO se manda el ID (lo pone la base de datos con AUTOINCREMENT) ni se
-//   inventa nada más. La fecha la pone la propia sentencia con datetime('now').
+//   OJO: se utiliza la clave primaria compuesta (ID_Sensor, Fecha). La fecha la
+//   pone la propia sentencia con datetime('now','localtime') y el ID_Sensor se
+//   asigna en base a la magnitud física medida.
 //
 //   SEGURIDAD: la consulta va PREPARADA con parámetros con nombre (:uuid, :major...)
 //   y nunca se concatenan valores dentro del texto SQL. Concatenar sería abrir la
@@ -147,11 +147,16 @@ function guardarMedida( $uuid, $major, $minor, $txPower, $nombreEmisora ) {
 
     $valor = (int)$minor;
     $idSensor = 1;
+    if ($tipo == 12 || $major == 12) {
+        $idSensor = 2;
+    } else if ($tipo == 13 || $major == 13) {
+        $idSensor = 3;
+    }
 
     try {
         $bdd = conectarBBDD();
         $sentencia = $bdd->prepare(
-            "INSERT INTO Medidas (Fecha, ID_Sensor, Tipo_Medicion, Valor_Medicion)
+            "INSERT OR REPLACE INTO Medidas (Fecha, ID_Sensor, Tipo_Medicion, Valor_Medicion)
              VALUES (datetime('now','localtime'), :idSensor, :tipo, :valor)" );
 
         $sentencia->bindValue( ':idSensor', $idSensor, PDO::PARAM_INT );
@@ -173,11 +178,11 @@ function guardarMedida( $uuid, $major, $minor, $txPower, $nombreEmisora ) {
 //
 //   Solo LEE el estado de la base de datos (flecha <-- a la derecha), no la modifica.
 //
-//   Se ordena por ID DESC, así que lo primero del array es la medida más reciente.
+//   Se ordena por Fecha DESC, ID_Sensor ASC, así que lo primero del array es la medida más reciente.
 //   "cuantasComoMaximo" es el tope: nunca se devuelven más de las pedidas.
 //
-//   Cada elemento devuelto es un array asociativo con las 5 claves del tipo Medida:
-//   id, fecha, idSensor, tipoMedicion, valorMedicion.
+//   Cada elemento devuelto es un array asociativo con las 4 claves del tipo Medida:
+//   fecha, idSensor, tipoMedicion, valorMedicion.
 // -------------------------------------------------------------------------------------------------
 function obtenerMedidas( $cuantasComoMaximo = 100 ) {
   $limite = filter_var( $cuantasComoMaximo, FILTER_VALIDATE_INT );
@@ -188,13 +193,12 @@ function obtenerMedidas( $cuantasComoMaximo = 100 ) {
   try {
     $bdd = conectarBBDD();
     $sentencia = $bdd->prepare(
-      "SELECT ID as id,
-              Fecha as fecha,
+      "SELECT Fecha as fecha,
               ID_Sensor as idSensor,
               Tipo_Medicion as tipoMedicion,
               Valor_Medicion as valorMedicion
          FROM Medidas
-        ORDER BY ID DESC
+        ORDER BY Fecha DESC, rowid DESC
         LIMIT :limite" );
 
     $sentencia->bindValue( ':limite', (int) $limite, PDO::PARAM_INT );
@@ -208,7 +212,6 @@ function obtenerMedidas( $cuantasComoMaximo = 100 ) {
   $lasMedidas = array();
   foreach ( $filas as $laFila ) {
     $lasMedidas[] = array(
-      'id'            => (int) $laFila['id'],
       'fecha'         => (string) $laFila['fecha'],
       'idSensor'      => (int) $laFila['idSensor'],
       'tipoMedicion'  => (string) $laFila['tipoMedicion'],

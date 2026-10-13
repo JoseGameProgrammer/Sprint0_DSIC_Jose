@@ -15,7 +15,6 @@ La entidad `Medida` se mapea directamente con el esquema relacional de la tabla 
 
 ```text
 Medida = (
-    id: N,
     fecha: Text,
     idSensor: N,
     tipoMedicion: Text,
@@ -25,9 +24,8 @@ TablaMedidas = [ Medida ]
 ```
 
 - Mapeo con `web_database_design.md`:
-  - `id` $\rightarrow$ Columna `ID` (`INTEGER PRIMARY KEY`)
-  - `fecha` $\rightarrow$ Columna `Fecha` (`TEXT`)
-  - `idSensor` $\rightarrow$ Columna `ID_Sensor` (`INTEGER`)
+  - `fecha` $\rightarrow$ Columna `Fecha` (`TEXT`, clave primaria compuesta)
+  - `idSensor` $\rightarrow$ Columna `ID_Sensor` (`INTEGER`, clave primaria compuesta)
   - `tipoMedicion` $\rightarrow$ Columna `Tipo_Medicion` (`TEXT`)
   - `valorMedicion` $\rightarrow$ Columna `Valor_Medicion` (`INTEGER`)
 
