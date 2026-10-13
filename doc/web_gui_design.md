@@ -3,7 +3,7 @@
 Componente: **interfaz de usuario web** (`web_gui`). Ofrece una vista visual que presenta la última medida recibida y el histórico de mediciones en una tabla, actualizándose periódicamente.
 
 Código correspondiente: `src/web_gui/`
-Ficheros: `index.html`, `testUX.js`
+Ficheros: `index.html`, `gui.js`, `testUX.js`
 
 ---
 

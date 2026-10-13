@@ -281,25 +281,22 @@
   </section>
 
   <!-- ===============================================================================================
-       LÓGICA DEL NAVEGADOR
-       Al final del body, como pide el enunciado.
-       LogicaFake.js es la que pide las medidas al servidor REST y repinta estas dos tablas.
+       LÓGICA DEL CLIENTE (PROXY) Y PRESENTACIÓN (GUI)
+       LogicaFake.js gestiona la obtención de datos desacoplada del DOM.
+       gui.js manipula el DOM y actualiza periódicamente la interfaz gráfica.
        =============================================================================================== -->
   <script src="../web_frontend_business_logic/LogicaFake.js"></script>
+  <script src="gui.js"></script>
 
   <!-- ===============================================================================================
        TEST AUTOMÁTICO DE LA INTERFAZ
-       definida verificarUX() comprobando, con "if", que están los dos <tbody> y que las dos
-       tablas tienen sus 5 cabeceras. Se ejecuta solo al abrir la página, y también se puede
-       llamar a mano desde la consola escribiendo:  verificarUX()
+       definida verificarUX() comprobando que están los dos <tbody> y las cabeceras de 5 columnas.
        =============================================================================================== -->
   <script src="testUX.js"></script>
 
   <!-- ===============================================================================================
        TEST AUTOMÁTICO DE LA LÓGICA FAKE
-       definida verificarLogicaFake(), que falsea el XMLHttpRequest con 3 Medida de prueba y
-       comprueba que obtenerMedidasFake() se las pasa al callback y que refrescarMedidas()
-       pinta bien las dos tablas. Va DESPUÉS de LogicaFake.js porque necesita a sus funciones.
+       definida verificarLogicaFake(), comprobando el proxy de cliente.
        =============================================================================================== -->
   <script src="../web_frontend_business_logic/testLogicaFake.js"></script>
 
