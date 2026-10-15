@@ -242,14 +242,6 @@ declarada en 1.2 y delega el envío de datos exclusivamente en `LogicaCliente` (
   26 en vez de la 27, fallan 3 pruebas de `TramaIBeaconTest`; y las 55 pasan con el código
   correcto.
 
-  #### Limitación conocida que dejé documentada
-
-  `Utilidades.bytesToIntOK()` calcula el signo con un `cast` a `byte`, que solo conserva los 8
-  bits bajos. Acierta de -1 a -128, pero de -129 en adelante se equivoca: `-32768` devuelve `0`.
-  No afecta al proyecto porque `MainActivity` usa `bytesToInt()`, que interpreta bien todo el
-  rango de 16 bits, y las temperaturas del enunciado van de -13 a -11. La prueba
-  `bytesToIntOK_limitaElSignoAUnByte()` documenta el comportamiento real, no el deseado.
-
   #### Lo que no se puede probar automáticamente
 
   El escaneo BLE en sí. `MainActivity` y `ServicioEscucharBeacons` dependen de Android, así que

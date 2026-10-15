@@ -6,21 +6,21 @@
 
 ---
 
-## 📖 1. Descripción del Proyecto
+## 1. Descripción del Proyecto
 
 Este proyecto implementa el flujo integral del **Sprint 0** para un sistema distribuido de monitorización medioambiental (CO2 y temperatura), abarcando desde el hardware embebido hasta la visualización en navegador web:
 
 1. **Emisor BLE (Arduino / nRF52840):** La placa Adafruit Bluefruit nRF52840 simula lecturas de CO2 (234–236 ppm) y temperatura con signo (-13 a -11 °C), codificándolas en tramas iBeacon (`major` y `minor`) y emitiéndolas al aire con UUID `EPSG-GTI-PROY-3A`.
 2. **Receptor y Gateway Móvil (Android):** Una aplicación en Java escanea paquetes de anuncios Bluetooth Low Energy, desempaqueta la trama iBeacon y, a través de su **proxy de cliente (`LogicaCliente`)**, reenvía las mediciones mediante peticiones HTTP POST al servidor REST.
 3. **Servidor Backend y Persistencia (PHP & SQLite):**
-   - **Capa de Comunicación:** Endpoint `GuardarMedida.php` (recibe POST con JSON) y `ObtenerMedidas.php` (atiende GET con límite).
+   - **Capa de Comunicación:** Endpoint `GuardarMedida.php` (recibe POST con JSON) y `ObtenerMedidas.php` (atiende GET)
    - **Capa de Lógica del Negocio:** `LogicaMedidas.php`, 100% independiente de HTTP, procesa las magnitudes y gestiona la persistencia.
    - **Capa de Base de Datos:** Base de datos relacional SQLite (`bdd.sqlite`) estructurada con una **clave primaria compuesta natural `(ID_Sensor, Fecha)`**.
 4. **Visualizador Web (HTML5 & JavaScript):** Interfaz gráfica responsive (`index.html` y `gui.js`) que consulta periódicamente las medidas al servidor a través de su proxy cliente (`LogicaFake.js`) y muestra la última medida y el histórico en tablas sincronizadas.
 
 ---
 
-## 🏛️ 2. Arquitectura del Sistema y Desacoplamiento
+## 2. Arquitectura del Sistema y Desacoplamiento
 
 El sistema sigue una arquitectura por capas estrictamente desacoplada:
 
@@ -38,7 +38,7 @@ El sistema sigue una arquitectura por capas estrictamente desacoplada:
 
 ---
 
-## 🚀 3. Cómo Desplegar el Proyecto
+## 3. Cómo Desplegar el Proyecto
 
 ### 3.1 Emisor Arduino (Hardware nRF52840)
 1. Abrir **Arduino IDE**.
@@ -51,17 +51,17 @@ El sistema sigue una arquitectura por capas estrictamente desacoplada:
 1. Requiere **PHP 8** con la extensión `pdo_sqlite` habilitada.
 2. Iniciar el servidor embebido desde la carpeta raíz del proyecto:
    ```powershell
-   php -S 127.0.0.1:8080 -t src
+   php -S 0.0.0.0:8080 -t src
    ```
 3. Verificar que la base de datos responde accediendo desde el navegador o mediante consola a:
    ```text
-   http://127.0.0.1:8080/web_database/VerTabla.php
+	http://127.0.0.1:8080/web_database/VerTabla.php
    ```
 
 ### 3.3 Aplicación Android
 1. Abrir el proyecto [`src/btle_gui`](file:///c:/Users/joseg/Documents/Sprint0_Entrega_Final/Sprint0_DSIC_Jose/src/btle_gui) en **Android Studio** (Koala / Ladybug o superior).
 2. Asegurarse de que el dispositivo Android tiene el Bluetooth encendido y permisos de ubicación/escaneo BLE concedidos.
-3. Si se prueba en dispositivo físico, configurar la IP del servidor en `ServicioEscucharBeacons.java` (o dejar `10.0.2.2` si se utiliza el emulador de Android Studio).
+3. Si se prueba en dispositivo físico, configurar la IP del servidor en `ServicioEscucharBeacons.java`.
 4. Ejecutar la aplicación en el dispositivo y pulsar **"Buscar nuestro dispositivo"** para recibir emisiones y enviarlas al backend.
 
 ### 3.4 Interfaz Web
@@ -73,7 +73,7 @@ El sistema sigue una arquitectura por capas estrictamente desacoplada:
 
 ---
 
-## 🧪 4. Cómo Ejecutar los Tests Automáticos
+## 4. Cómo Ejecutar los Tests Automáticos
 
 El proyecto cuenta con **139 pruebas automáticas reproducibles** que cubren todos los componentes del sistema:
 
@@ -119,7 +119,7 @@ php src/web_communication/testServidorREST.php
 
 ---
 
-## 🤖 5. Uso Responsable de Herramientas de IA
+## 5. Uso Responsable de Herramientas de IA
 
 De acuerdo con las directrices de la asignatura, el uso de asistentes de IA se ha guiado por una metodología rigurosa:
 1. **Diseño previo:** Todos los componentes se diseñaron previamente de forma manual en notación formal abstracta dentro de la carpeta `doc/` antes de generar código.
